@@ -1,5 +1,5 @@
-# pcp
-JtekPCP
+#JtekPCP
+
 Desenvolvimento de sistema para controle de produção e estoques "extremamente básico" :D
 
 Sistema de Planejamento e Controle da Produção (PCP)
