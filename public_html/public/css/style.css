@@ -1,0 +1,710 @@
+/* public/css/style.css */
+
+/* Importa a fonte Inter do Google Fonts para um visual moderno */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Estilos globais do corpo da página */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f7f6; /* Cor de fundo suave */
+    color: #333; /* Cor de texto principal */
+    line-height: 1.6;
+    padding-top: 90px; /* Adiciona padding ao corpo para evitar que o conteúdo fique atrás do header fixo. Ajuste se o header tiver altura diferente. */
+    font-size: 12px; 
+}
+
+/* Estilos do cabeçalho */
+header {
+    background-color: #2c3e50; /* Azul escuro */
+    color: #ecf0f1; /* Branco acinzentado */
+    padding: 1.2rem 0; /* Mais padding vertical */
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15); /* Sombra mais visvel */
+    border-bottom-left-radius: 15px; /* Cantos arredondados na parte inferior */
+    border-bottom-right-radius: 15px;
+    position: fixed; /* Fixa o cabeçalho no topo */
+    top: 0; /* Alinha ao topo da viewport */
+    left: 0; /* Alinha à esquerda da viewport */
+    width: 100%; /* Garante que o cabeçalho ocupe toda a largura */
+    z-index: 1000; /* Garante que o cabeçalho fique acima de outros elementos */
+}
+
+/* Estilos da navegao */
+nav ul {
+    list-style: none; /* Remove marcadores de lista */
+    padding: 0;
+    margin: 0;
+    display: flex; /* Layout flexbox para os itens do menu */
+    justify-content: center; /* Centraliza os itens horizontalmente */
+    flex-wrap: wrap; /* Quebra linha em telas pequenas */
+}
+nav ul li {
+    margin: 0 18px; /* Espaçamento entre os itens do menu */
+}
+nav ul li a {
+    color: #ecf0f1;
+    text-decoration: none; /* Remove sublinhado */
+    padding: 10px 20px; /* Mais padding nos links */
+    border-radius: 10px; /* Cantos mais arredondados */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Transições suaves */
+    font-weight: 500; /* Levemente mais negrito */
+}
+nav ul li a:hover {
+    background-color: #34495e; /* Fundo mais escuro ao passar o mouse */
+    transform: translateY(-2px); /* Efeito de "levantar" */
+}
+nav ul li a.active {
+    background-color: #3498db; /* Azul vibrante para o item ativo */
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Sombra para o item ativo */
+}
+
+/* Estilos do conteúdo principal */
+main {
+    padding: 30px; /* Mais padding interno */
+    max-width: 1200px; /* Largura máxima */
+    margin: 25px auto; /* Centraliza e adiciona margem */
+    background-color: #fff;
+    border-radius: 15px; /* Cantos bem arredondados */
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08); /* Sombra mais pronunciada */
+}
+
+/* Estilos de títulos */
+h1, h2, h3 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 25px; /* Mais espaço abaixo dos títulos */
+    font-weight: 700; /* Más negrito */
+}
+h1 { font-size: 2.5rem; }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.7rem; }
+
+/* Estilos de mensagens de feedback (sucesso/erro) */
+.message {
+    padding: 15px;
+    margin-bottom: 25px;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: bold;
+    animation: fadeIn 0.6s ease-out; /* Animação ao surgir */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.message.success {
+    background-color: #d4edda; /* Verde claro */
+    color: #155724; /* Verde escuro */
+    border: 1px solid #c3e6cb;
+}
+.message.error {
+    background-color: #f8d7da; /* Vermelho claro */
+    color: #721c24; /* Vermelho escuro */
+    border: 1px solid #f5c6fb;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Estilos de tabelas */
+table {
+    width: 100%;
+    border-collapse: collapse; /* Remove bordas duplas */
+    margin-top: 25px;
+    border-radius: 12px; /* Cantos arredondados */
+    overflow: hidden; /* Garante que os cantos arredondados se apliquem */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Sombra elegante */
+}
+table th, table td {
+    padding: 16px 20px; /* Ms padding */
+    text-align: left;
+    border-bottom: 1px solid #e5e5e5; /* Linhas divisórias claras */
+}
+table th {
+    background-color: #34495e;
+    color: #ecf0f1;
+    font-weight: 600; /* Más negrito */
+    text-transform: uppercase; /* Texto em maisculas */
+    letter-spacing: 0.7px; /* Más espaamento entre letras */
+}
+table tbody tr:nth-child(even) {
+    background-color: #fcfcfc; /* Fundo alternado */
+}
+table tbody tr:hover {
+    background-color: #eef7fc; /* Destaque ao passar o mouse */
+    transition: background-color 0.3s ease;
+}
+
+/* Estilos de botões */
+.button {
+    display: inline-flex; /* Para alinhar texto e ícones */
+    align-items: center;
+    justify-content: center;
+    background-color: #3498db; /* Azul padrão */
+    color: white;
+    padding: 12px 25px; /* Ms padding */
+    border: none;
+    border-radius: 10px; /* Cantos arredondados */
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 17px;
+    font-weight: 600;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.18); /* Sombra más pronunciada */
+    margin-right: 12px; /* Espaçamento entre botões */
+    min-width: 130px; /* Largura mínima para consistência */
+}
+.button:hover {
+    background-color: #2980b9;
+    transform: translateY(-4px); /* Efeito de "levantar" más acentuado */
+    box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+}
+.button.edit { background-color: #f39c12; } /* Laranja para editar */
+.button.edit:hover { background-color: #e67e22; }
+.button.delete { background-color: #e74c3c; } /* Vermelho para excluir */
+.button.delete:hover { background-color: #c0392b; }
+.button.add { background-color: #27ae60; } /* Verde para adicionar */
+.button.add:hover { background-color: #229a56; }
+.button.submit { background-color: #27ae60; } /* Verde para submit de formulário */
+.button.submit:hover { background-color: #229a56; }
+.button-clear { /* Estilo para o botão "Limpar Pesquisa" */
+    background-color: #95a5a6; /* Cinza */
+}
+.button-clear:hover {
+    background-color: #7f8c8d;
+}
+
+/* Estilo para Botões e Campos Desativados */
+.button.disabled,
+a.button.disabled,
+.disabled-field { /* Aplica estilo a elementos desativados por JS/PHP */
+    opacity: 0.6; /* Torna o elemento más transparente */
+    cursor: not-allowed; /* Altera o cursor para "não permitido" */
+    pointer-events: none; /* Desabilita eventos de clique e hover */
+    box-shadow: none; /* Remove a sombra para parecer desativado */
+    transform: none; /* Remove qualquer transformaço no hover */
+    background-color: #e0e0e0; /* Fundo cinza claro para campos desativados */
+    color: #888; /* Cor de texto más clara */
+    border-color: #c0c0c0; /* Borda más clara */
+}
+.button.disabled:hover,
+a.button.disabled:hover { /* Mantém a cor original no hover para botões desativados */
+    background-color: #3498db; 
+    transform: none;
+    box-shadow: none;
+}
+.button.disabled.edit,
+a.button.disabled.edit { background-color: #f39c12; } 
+.button.disabled.delete,
+a.button.disabled.delete { background-color: #e74c3c; } 
+.button.disabled.add,
+a.button.disabled.add { background-color: #27ae60; } 
+.button.disabled.submit,
+a.button.disabled.submit { background-color: #27ae60; } 
+/* Estilo para links de toggle desativados */
+a.toggle-link.disabled-link {
+    color: #95a5a6; /* Cor cinza para links desativados */
+    text-decoration: none; /* Remove sublinhado */
+    cursor: not-allowed;
+}
+a.toggle-link.disabled-link:hover {
+    color: #95a5a6; /* Garante que a cor não mude no hover */
+    text-decoration: none;
+}
+
+
+/* Botões pequenos (usados em tabelas) */
+.button.small {
+    padding: 7px 12px; /* Reduzido o padding para 7px verticais e 12px horizontais */
+    font-size: 12px; /* Mantido em 12px */
+    min-width: auto;
+    margin-right: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.button.small:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* Estilos de formulrios */
+form {
+    background-color: #fcfcfc;
+    padding: 35px; /* Más padding */
+    border-radius: 15px; /* Cantos arredondados */
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-top: 30px;
+    display: grid; /* Layout de grid para os campos */
+    grid-template-columns: 1fr 1fr; /* Duas colunas */
+    gap: 25px; /* Espaamento entre os grupos de campos */
+}
+form .form-group {
+    display: flex;
+    flex-direction: column; /* Organiza label e input em coluna */
+    position: relative; /* Para posicionar mensagens de erro/required */
+}
+form .full-width {
+    grid-column: 1 / -1; /* Ocupa todas as colunas (para campos grandes como textarea) */
+}
+form label {
+    margin-bottom: 10px; /* Espaamento abaixo da label */
+    font-weight: 600; /* Más negrito */
+    color: #555;
+    font-size: 16px;
+}
+form input[type="text"],
+form input[type="number"],
+form input[type="date"],
+form input[type="datetime-local"],
+form input[type="email"],
+form input[type="tel"],
+form input[type="password"], /* Adicionado type="password" aqui */
+form textarea,
+form select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd; /* Borda suave */
+    border-radius: 8px; /* Cantos arredondados */
+    font-size: 16px;
+    box-sizing: border-box; /* Inclui padding na largura total */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+form input[type="text"]:focus,
+form input[type="number"]:focus,
+form input[type="date"]:focus,
+form input[type="datetime-local"]:focus,
+form input[type="email"]:focus,
+form input[type="tel"]:focus,
+form input[type="password"]:focus, /* Adicionado type="password" aqui */
+form textarea:focus,
+form select:focus {
+    border-color: #3498db; /* Borda azul ao focar */
+    box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2); /* Sombra de foco */
+    outline: none; /* Remove o outline padro do navegador */
+}
+
+/* Estilo para campos obrigatrios (borda amarela clara para destaque) */
+form input:required,
+form select:required,
+form textarea:required {
+    border-left: 5px solid #ffcc00; /* Borda amarela clara */
+    padding-left: 7px; /* Ajusta padding para a borda */
+}
+/* Estilo para campos obrigatórios válidos (opcional, verde) */
+form input:required:valid:not(:placeholder-shown),
+form select:required:valid,
+form textarea:required:valid {
+    border-color: #27ae60;
+    box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.2);
+}
+/* Estilo para campos obrigatórios inválidos (vermelho) */
+form input:required:invalid:not(:placeholder-shown),
+form select:required:invalid,
+form textarea:required:invalid {
+    border-color: #e74c3c; /* Vermelho */
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+}
+
+
+form textarea {
+    min-height: 100px; /* Altura mínima para textarea */
+    resize: vertical; /* Permite redimensionar verticalmente */
+}
+form button[type="submit"] {
+    grid-column: 1 / -1; /* Ocupa todas as colunas */
+    justify-self: center; /* Centraliza o botão de submit */
+    width: auto; /* Largura automática para o botão */
+    margin-top: 20px;
+    padding: 14px 35px;
+    font-size: 19px;
+    font-weight: 700;
+}
+
+/* Contêiner para botões de ação na parte superior da tabela */
+.actions-container {
+    display: flex;
+    justify-content: flex-end; /* Alinha os botões direita */
+    margin-bottom: 20px;
+    padding-right: 5px; /* Pequeno ajuste visual */
+}
+
+/* Reverter Alinhamento de Pesquisa */
+.search-container {
+    background-color: #f0f0f0; /* Um cinza claro */
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); /* Sombra interna sutil */
+    margin-bottom: 30px;
+    flex-wrap: wrap; 
+}
+
+.search-container form {
+    flex-wrap: wrap; 
+    margin: 0; 
+    padding: 0; 
+    background-color: transparent; 
+    box-shadow: none; 
+    width: 100%;
+}
+
+.search-container input[type="text"],
+.search-container select {
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    width: 100%; /* Voltar a ocupar largura total em bloco */
+    margin-bottom: 10px; /* Adicionar margem inferior para espaamento */
+    max-width: none; /* Remover largura máxima para layout de bloco */
+    min-width: auto; /* Remover largura mínima para flexibilidade */
+}
+
+.search-container button,
+.search-container .button-clear {
+    padding: 10px 20px;
+    font-size: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: all 0.2s ease-in-out;
+    margin-right: 10px; /* Adicionar margem direita para botões em linha */
+    width: auto; /* Voltar a ter largura automática */
+    min-width: auto; /* Remover largura mínima para flexibilidade */
+}
+/* No caso de botões que precisam de quebra de linha em telas menores, podemos adicionar um media query específico para eles */
+@media (max-width: 480px) {
+    .search-container button,
+    .search-container .button-clear {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+}
+
+
+/* Links "Novo" dentro dos formulários (agora como texto normal) */
+.toggle-link {
+    display: inline-block; /* Para que margin e padding funcionem */
+    margin-left: 10px; /* Espaamento do input/select */
+    color: #3498db; /* Cor de link padro */
+    text-decoration: underline; /* Sublinhado padro */
+    font-weight: normal; /* Remove negrito */
+    font-size: 0.9em; /* Um pouco menor que o texto normal */
+    transition: color 0.2s ease;
+}
+.toggle-link:hover {
+    color: #2980b9; /* Cor de hover para links */
+    text-decoration: none; /* Remove sublinhado ao passar o mouse */
+}
+
+/* Estilos de Paginação */
+.pagination {
+    display: flex;
+    justify-content: center; /* Centraliza os links de paginaão */
+    align-items: center;
+    margin-top: 30px;
+    gap: 8px; /* Espaamento entre os links */
+    flex-wrap: wrap; /* Para responsividade */
+}
+
+.pagination .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 15px; /* Similar ao botão small, mas um pouco maior */
+    border: 1px solid #ccc;
+    border-radius: 8px; /* Cantos arredondados */
+    background-color: #f9f9f9; /* Fundo claro */
+    color: #333; /* Texto escuro */
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    min-width: 40px; /* Largura mínima para botões de número */
+    text-align: center;
+}
+
+.pagination .page-link:hover {
+    background-color: #eef7fc; /* Fundo levemente azulado no hover */
+    border-color: #3498db; /* Borda azul no hover */
+    color: #2c3e50; /* Texto más escuro */
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.pagination .page-link.active {
+    background-color: #3498db; /* Cor de destaque para a pgina atual */
+    color: white;
+    border-color: #3498db;
+    font-weight: 600;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.pagination .page-link.active:hover {
+    background-color: #2980b9; /* Escurece um pouco no hover da página ativa */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+}
+
+/* Estilos para Indicadores */
+.indicators-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 25px; /* Espaamento entre os cards */
+    margin-top: 40px;
+    margin-bottom: 50px;
+}
+
+.indicator-card {
+    background-color: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1); /* Sombra suave */
+    padding: 25px;
+    text-align: center;
+    flex: 1; /* Permite que os cards cresçam e diminuam */
+    min-width: 220px; /* Largura mínima para evitar que fiquem muito pequenos */
+    max-width: 300px; /* Largura máxima para controle em telas grandes */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.indicator-card:hover {
+    transform: translateY(-5px); /* Efeito de elevaão no hover */
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15); /* Sombra más intensa */
+}
+
+.indicator-card h3 {
+    color: #34495e;
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.indicator-card .indicator-number {
+    font-size: 2.8rem; /* Nmero grande e impactante */
+    font-weight: 700;
+    color: #3498db; /* Azul primário */
+    margin: 10px 0;
+}
+
+.indicator-card .indicator-description {
+    font-size: 0.95em;
+    color: #7f8c8d; /* Cinza suave */
+    min-height: 40px; /* Garante altura mínima para alinhamento */
+}
+
+/* Estilo para cards de alerta (com cores diferentes) */
+.indicator-card.alert {
+    border: 2px solid #e74c3c; /* Borda vermelha para alerta */
+    background-color: #fbecec; /* Fundo más claro para alerta */
+}
+
+.indicator-card.alert .indicator-number {
+    color: #e74c3c; /* Número vermelho para alerta */
+}
+
+
+/* Link para voltar (abaixo dos formulários) */
+.back-link {
+    display: block;
+    margin-top: 25px;
+    text-align: center;
+    color: #3498db;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+.back-link:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+/* Estilos do rodapé */
+footer {
+    text-align: center;
+    padding: 25px;
+    margin-top: 35px;
+    background-color: #2c3e50;
+    color: #ecf0f1;
+    border-top-left-radius: 15px; /* Cantos arredondados na parte superior */
+    border-top-right-radius: 15px;
+    box-shadow: 0 -3px 6px rgba(0,0,0,0.1);
+}
+
+/* Modal de Confirmação */
+.modal {
+    display: none; /* Escondido por padro */
+    position: fixed; /* Fixo na tela */
+    z-index: 1000; /* Acima de outros elementos */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.7); /* Fundo semi-transparente */
+    align-items: center; /* Centraliza verticalmente */
+    justify-content: center; /* Centraliza horizontalmente */
+}
+
+.modal-content {
+    background-color: #fefefe;
+    padding: 40px; /* Más padding */
+    border-radius: 15px; /* Cantos arredondados */
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3); /* Sombra más forte */
+    width: 90%;
+    max-width: 450px; /* Largura máxima */
+    text-align: center;
+    animation: zoomInModal 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; /* Efeito bouncy */
+}
+
+@keyframes zoomInModal {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    color: #2c3e50;
+    font-size: 1.8rem;
+}
+
+.modal-content p {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.modal-buttons {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 20px; /* Espaamento entre os botes */
+}
+
+.modal-buttons .button {
+    min-width: 120px; /* Largura mínima para botões do modal */
+    padding: 12px 25px;
+    font-size: 16px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+.modal-buttons .button.cancel {
+    background-color: #95a5a6; /* Cinza para cancelar */
+}
+.modal-buttons .button.cancel:hover {
+    background-color: #7f8c8d;
+}
+
+/* Estilos Responsivos */
+@media (max-width: 768px) {
+    nav ul {
+        flex-direction: column; /* Itens do menu em coluna */
+        align-items: center;
+    }
+    nav ul li {
+        margin: 8px 0; /* Más espaamento vertical */
+    }
+    main {
+        padding: 20px; /* Reduz padding em telas menores */
+    }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.7rem; }
+    h3 { font-size: 1.5rem; }
+    .message { padding: 12px; }
+    table th, table td { padding: 12px 15px; }
+    .button {
+        width: 100%; /* Botes ocupam largura total */
+        margin-right: 0;
+        margin-bottom: 10px; /* Espaamento vertical entre botões */
+    }
+    .actions-container {
+        flex-direction: column;
+        align-items: stretch;
+        padding-right: 0;
+    }
+    .modal-content {
+        padding: 25px;
+    }
+    .modal-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .modal-buttons .button {
+        width: 100%;
+        min-width: auto;
+    }
+    .search-container form { /* Em telas menores, os itens da pesquisa se empilham */
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .search-container input[type="text"],
+    .search-container select,
+    .search-container .button-clear {
+        max-width: 100%; /* Ocupa largura total */
+        margin-bottom: 10px; /* Adiciona espaamento entre eles */
+    }
+    .search-container button,
+    .search-container .button-clear {
+        width: 100%; /* Estica botões para largura total */
+    }
+
+    /* Ajuste responsivo para indicadores */
+    .indicators-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    .indicator-card {
+        width: 90%;
+        max-width: 350px;
+    }
+}
+
+@media (max-width: 480px) {
+    header { padding: 0.8rem 0; }
+    nav ul li a {
+        padding: 8px 15px;
+        font-size: 15px;
+    }
+    main { margin: 15px auto; }
+    h1 { font-size: 1.8rem; }
+    h2 { font-size: 1.5rem; }
+    h3 { font-size: 1.3rem; }
+    .message { padding: 12px; }
+    table th, table td { padding: 12px 15px; }
+    .button { padding: 10px 20px; font-size: 15px; }
+    form { padding: 20px; }
+    form label { font-size: 14px; }
+    form input, form textarea, form select { font-size: 15px; padding: 10px; }
+    form button[type="submit"] { padding: 12px 25px; font-size: 16px; }
+}
+/* ========================================================= */
+/* Estilos Finais para o Dropdown de Busca (Tema do Projeto) */
+/* ========================================================= */
+
+/* O container que segura o dropdown */
+.dropdown-search-container {
+    position: relative;
+}
+
+/* O estilo principal para o dropdown flutuante */
+.dropdown-search-results {
+    position: absolute;
+    z-index: 1000;
+    width: 100%;
+    max-height: 250px;
+    overflow-y: auto;
+    background-color: #2c3e50; /* Fundo azul escuro do seu tema */
+    border: 1px solid #34495e; /* Borda um pouco mais clara */
+    border-radius: 10px;       /* Cantos arredondados para o efeito "balão" */
+    box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+    display: none; /* Inicia escondido por padrão */
+    padding: 5px 0; /* Espaçamento interno vertical */
+}
+/* Ajuste para listas de resultados de busca */
+.list-group .list-group-item {
+    display: block; /* Garante que cada item ocupe sua própria linha */
+    width: 100%;    /* Garante que cada item ocupe a largura total disponível */
+    box-sizing: border-box; /* Inclui padding e borda na largura total */
+}
+
+/* Opcional: Adiciona uma pequena margem entre os itens da lista para melhor visualização */
+.list-group-item:not(:last-child) {
+    margin-bottom: 2px;
+}
