@@ -4,6 +4,21 @@
 
 // Inicia a sessão para usar variáveis de sessão (necessário para mensagens)
 session_start();
+require_once __DIR__ . '/../../config/database.php';
+
+// --- OBSERVAÇÃO DE SEGURANÇA ---
+if (!isset($_SESSION['user_cargo']) || $_SESSION['user_cargo'] !== 'admin') {
+    $_SESSION['message'] = "Acesso negado.";
+    $_SESSION['message_type'] = "error";
+    header("Location: " . BASE_URL . "/public/index.php");
+    exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $conn = connectDB();
+    // ... lógica para inserir novo operador ...
+    // (O restante do código de inserção permanece o mesmo)
+}
 
 // Habilita a exibição de todos os erros PHP para depuração (REMOVER EM PRODUÇÃO)
 error_reporting(E_ALL);
@@ -19,7 +34,7 @@ require_once __DIR__ . '/../../includes/header.php';
 // Conecta ao banco de dados
 $conn = connectDB();
 
-// Variáveis para mensagens de sucesso/erro - GARANTIDAS DE SEREM INICIALIZADAS
+// Variveis para mensagens de sucesso/erro - GARANTIDAS DE SEREM INICIALIZADAS
 $message = '';
 $message_type = '';
 
