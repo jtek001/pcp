@@ -76,7 +76,7 @@ if ($current_page > $total_pages && $total_pages > 0) {
 }
 
 
-// 2. Buscar as Ordens de Produção para a página atual
+// 2. Buscar as Ordens de Produção para a pgina atual
 $ordens_producao = [];
 // Inclui SUM de apontamentos e GROUP BY, e o número do pedido
 $sql_fetch = "SELECT op.id, op.numero_op, op.numero_pedido, p.nome AS produto_nome, op.quantidade_produzir, op.data_emissao, op.status, SUM(COALESCE(ap.quantidade_produzida, 0)) AS quantidade_apontada FROM ordens_producao op JOIN produtos p ON op.produto_id = p.id LEFT JOIN apontamentos_producao ap ON op.id = ap.ordem_producao_id AND ap.deleted_at IS NULL" . $where_clause . " GROUP BY op.id ORDER BY op.id DESC LIMIT ? OFFSET ?";
@@ -136,7 +136,6 @@ try {
         <thead>
             <tr>
                 <th>ORDEM</th>
-                <th>Pedido</th>
                 <th>Produto</th>
                 <th>PROGRAMADO</th>
                 <th>Emissão</th>
@@ -148,7 +147,6 @@ try {
             <?php foreach ($ordens_producao as $op): ?>
                 <tr>
                     <td><?php echo htmlspecialchars($op['numero_op']); ?></td>
-                    <td><?php echo htmlspecialchars($op['numero_pedido'] ?? 'N/A'); ?></td>
                     <td><?php echo htmlspecialchars($op['produto_nome']); ?></td>
                     <td><?php echo number_format($op['quantidade_produzir'], 2, ',', '.'); ?></td>
                     <td><?php echo date('d/m/Y', strtotime($op['data_emissao'])); ?></td>
