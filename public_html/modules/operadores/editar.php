@@ -4,6 +4,20 @@
 
 // Inicia a sessão para usar variáveis de sessão (necessário para mensagens)
 session_start();
+require_once __DIR__ . '/../../config/database.php';
+
+// --- OBSERVAÇÃO DE SEGURANÇA ---
+if (!isset($_SESSION['user_cargo']) || $_SESSION['user_cargo'] !== 'admin') {
+    $_SESSION['message'] = "Acesso negado.";
+    $_SESSION['message_type'] = "error";
+    header("Location: " . BASE_URL . "/public/index.php");
+    exit();
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $conn = connectDB();
+    // ... lógica para atualizar o operador ...
+}
 
 // Habilita a exibição de todos os erros PHP para depuração (REMOVER EM PRODUÇÃO)
 error_reporting(E_ALL);
@@ -12,7 +26,7 @@ ini_set('display_errors', 1);
 // Define o fuso horário padrão do PHP para Brasília.
 date_default_timezone_set('America/Sao_Paulo');
 
-// Inclui os arquivos de configuração e o cabeçalho
+// Inclui os arquivos de configuraço e o cabeçalho
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../includes/header.php';
 
@@ -87,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $id > 0 && $operador_data) {
                 }
             }
 
-            // Constrói a parte do SQL para atualização de senha
+            // Constri a parte do SQL para atualizaão de senha
             $password_update_sql = "";
             $password_params = [];
             if (!empty($temp_password)) {
