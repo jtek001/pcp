@@ -13,28 +13,29 @@ $term = sanitizeInput($_GET['term'] ?? '');
 
 if (empty($term)) {
     http_response_code(400);
-    echo json_encode(['error' => 'O termo de busca (Nome ou Código) é obrigatório.']);
+    echo json_encode(['error' => 'O código do insumo é obrigatório.']);
     exit;
 }
 
-// Busca por matéria-prima com saldo em estoque
+// ALTERAÇÃO: A busca agora é apenas pela coluna 'codigo'.
 $sql = "SELECT id, nome, codigo, estoque_atual 
         FROM produtos 
         WHERE 
-            (nome = ? OR codigo = ?) 
-            AND UPPER(familia) = 'MATERIA-PRIMA'
+            codigo = ?
+            AND UPPER(familia) IN ('MATERIA-PRIMA', 'COMPONENTES')
             AND estoque_atual > 0 
             AND deleted_at IS NULL 
         LIMIT 1";
 
 try {
-    $insumo = $conn->execute_query($sql, [$term, $term])->fetch_assoc();
+    // A busca agora usa apenas um parâmetro.
+    $insumo = $conn->execute_query($sql, [$term])->fetch_assoc();
 
     if ($insumo) {
         echo json_encode($insumo);
     } else {
         http_response_code(404);
-        echo json_encode(['error' => 'Nenhuma matéria-prima com saldo encontrada para este termo.']);
+        echo json_encode(['error' => 'Nenhuma matéria-prima ou componente com saldo encontrada para este código.']);
     }
 
 } catch (mysqli_sql_exception $e) {
