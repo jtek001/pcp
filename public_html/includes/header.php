@@ -1,73 +1,138 @@
 <?php
-// includes/header.php
-// Este arquivo incluirá o cabeçalho HTML e o menu de navegação.
-
-// Garante que o arquivo de configuração, que define BASE_URL, seja incluído
-require_once __DIR__ . '/../config/database.php';
-
-// Inicia a sessão (se j não estiver iniciada) - CRÍTICO para autenticação
-if (session_status() == PHP_SESSION_NONE) {
+// Garante que a sessão seja iniciada em todas as páginas que incluem o header
+if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Determina o módulo atual para destacar no menu
-// Usa a superglobal $_GET para identificar o módulo atual
-$current_module = isset($_GET['module']) ? $_GET['module'] : 'home';
-
-// Proteção de Página e Redirecionamento de Login
-$public_pages = [
-    BASE_URL . '/public/login.php',
-    BASE_URL . '/public/index.php', // A página inicial pode ser pblica ou exigir login se houver dashboard sensível
-];
-
-$current_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-
-// Se o usuário não est logado E a página atual NÃO é uma página pública (de login ou index)
-// Isso é uma proteção básica. Para produção, considere um arquivo de roteamento ou middleware.
-if (!isset($_SESSION['user_id']) && !in_array($current_url, $public_pages) && strpos($_SERVER['REQUEST_URI'], '/login.php') === false) {
-    header("Location: " . BASE_URL . "/public/login.php");
-    exit();
+// Verifica se o usuário est logado. Se não, redireciona para a página de login.
+$current_page_name = basename($_SERVER['PHP_SELF']);
+if (!isset($_SESSION["user_id"]) && $current_page_name != 'login.php') {
+    header("location: " . (defined('BASE_URL') ? BASE_URL : '') . "/public/login.php");
+    exit;
 }
 
+// Determina se um link do menu ou dropdown deve ser marcado como 'ativo'
+function is_active($modules) {
+    if (!is_array($modules)) {
+        $modules = [$modules];
+    }
+    
+    $current_uri = $_SERVER['REQUEST_URI'];
+
+    foreach ($modules as $module) {
+        // Condição especial para o Dashboard
+        if ($module === 'dashboard' && strpos($current_uri, '/public/index.php') !== false) {
+            return 'active';
+        }
+        // Para os outros módulos, verifica se a pasta do módulo está na URL
+        if ($module !== 'dashboard' && strpos($current_uri, '/modules/' . $module . '/') !== false) {
+            return 'active';
+        }
+    }
+    return '';
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de PCP - <?php echo htmlspecialchars(COMPANY_NAME); ?></title>
-    <!-- Inclui a folha de estilos CSS externa usando a BASE_URL -->
+    <title><?php echo defined('COMPANY_NAME') ? COMPANY_NAME : 'Sistema de PCP'; ?></title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Seu CSS personalizado -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/css/style.css">
 </head>
 <body>
     <header>
-        <nav>
-            <ul id="main-nav-list">
-                <?php if (isset($_SESSION['user_id'])): // Mostra links apenas se o usurio estiver logado ?>
-                    <li><a href="<?php echo BASE_URL; ?>/public/index.php?module=home" class="<?php echo ($current_module === 'home') ? 'active' : ''; ?>">Início</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>/modules/produtos/index.php?module=produtos" class="<?php echo ($current_module === 'produtos') ? 'active' : ''; ?>">Produtos</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>/modules/maquinas/index.php?module=maquinas" class="<?php echo ($current_module === 'maquinas') ? 'active' : ''; ?>">Máquinas</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>/modules/ordens_producao/index.php?module=ordens_producao" class="<?php echo ($current_module === 'ordens_producao') ? 'active' : ''; ?>">Ordens de Produção</a></li>
-                    <?php if (isset($_SESSION['user_cargo']) && $_SESSION['user_cargo'] === 'admin'): // Link Operadores apenas para admin ?>
-                    <li><a href="<?php echo BASE_URL; ?>/modules/operadores/index.php?module=operadores" class="<?php echo ($current_module === 'operadores') ? 'active' : ''; ?>">Operadores</a></li>
-                    <?php endif; ?>
-                    <li><a href="<?php echo BASE_URL; ?>/modules/materiais/index.php?module=materiais" class="<?php echo ($current_module === 'materiais') ? 'active' : ''; ?>">Materiais</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>/modules/bom/index.php?module=bom" class="<?php echo ($current_module === 'bom') ? 'active' : ''; ?>">Lista de Materiais (BoM)</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>/modules/estoque/index.php?module=estoque" class="<?php echo ($current_module === 'estoque') ? 'active' : ''; ?>">Estoque</a></li> 
-                    <li><a href="<?php echo BASE_URL; ?>/modules/empenho_manual/index.php?module=empenho_manual" class="<?php echo ($current_module === 'empenho_manual') ? 'active' : ''; ?>">Empenho Manual</a></li>
-                    <li><a href="<?php echo BASE_URL; ?>/modules/fornecedores_clientes/index.php?module=fornecedores_clientes" class="<?php echo ($current_module === 'fornecedores_clientes') ? 'active' : ''; ?>">Fornecedores/Clientes</a></li> 
-                    <li><a href="<?php echo BASE_URL; ?>/modules/chao_de_fabrica/index.php?module=chao_de_fabrica" class="<?php echo ($current_module === 'chao_de_fabrica') ? 'active' : ''; ?>">Cho de Fábrica</a></li> 
-                    <li><a href="<?php echo BASE_URL; ?>/public/logout.php" class="">Sair</a></li>
-                <?php else: ?>
-                    <!-- Links visíveis para usuários não logados (apenas a tela de login) -->
-                    <li><a href="<?php echo BASE_URL; ?>/public/login.php" class="<?php echo (strpos($_SERVER['REQUEST_URI'], 'login.php') !== false) ? 'active' : ''; ?>">Login</a></li>
-                <?php endif; ?>
-            </ul>
+        <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #2c3e50;">
+            <div class="container-fluid">
+            
+                <a class="navbar-brand" href="<?php echo BASE_URL; ?>/public/index.php">
+                    <img src="<?php echo BASE_URL; ?>/public/img/logo-jtek.png" height="35" title="Inicio" />
+                </a>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo is_active('dashboard'); ?>" href="<?php echo BASE_URL; ?>/public/index.php"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                        </li>
+                        
+                        <!-- Menu Cadastros -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle <?php echo is_active(['produtos', 'maquinas', 'bom', 'fornecedores_clientes', 'operadores']); ?>" href="#" id="navbarDropdownCadastros" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-edit"></i> Cadastros
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownCadastros">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/produtos/index.php">Produtos</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/maquinas/index.php">Máquinas</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/bom/index.php">Lista de Materiais</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/fornecedores_clientes/index.php">Clientes & Fornecedores</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/operadores/index.php">Operadores</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Menu Vendas -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle <?php echo is_active(['pedidos_venda']); ?>" href="#" id="navbarDropdownVendas" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-dollar-sign"></i> Vendas
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownVendas">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/pedidos_venda/index.php">Pedidos de Venda</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Menu Produção -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle <?php echo is_active(['ordens_producao', 'chao_de_fabrica']); ?>" href="#" id="navbarDropdownProducao" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-industry"></i> Produção
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownProducao">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/ordens_producao/index.php">Ordens de Produção</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/chao_de_fabrica/index.php">Chão de Fábrica</a></li>
+                            </ul>
+                        </li>
+                        
+                        <!-- Menu Manutenção -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle <?php echo is_active(['manutencao']); ?>" href="#" id="navbarDropdownManutencao" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-tools"></i> Manutenção
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownManutencao">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/manutencao/index.php">Controle de Paradas</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Menu Estoque -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle <?php echo is_active(['estoque', 'entradas_materiais', 'empenho_manual']); ?>" href="#" id="navbarDropdownEstoque" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-boxes-stacked"></i> Estoque
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownEstoque">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/estoque/index.php">Visão Geral</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/entradas_materiais/index.php">Entrada de Materiais</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/empenho_manual/index.php">Empenho Manual</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link <?php echo is_active('relatorios'); ?>" href="<?php echo BASE_URL; ?>/modules/relatorios/index.php"><i class="fas fa-chart-pie"></i> Relatórios</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav ms-auto">
+                         <li class="nav-item">
+                            <a class="nav-link" href="<?php echo BASE_URL; ?>/public/logout.php"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </nav>
     </header>
     <main>
-        <!-- A área principal do conteúdo será fechada em footer.php -->
-    <script>
-        // Removido o menu-toggle e a lógica de toggleMenu() e closeMenu() daqui
-        // pois o menu lateral será desfeito.
-    </script>
