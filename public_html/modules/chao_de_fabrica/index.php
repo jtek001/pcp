@@ -1,6 +1,6 @@
 <?php
 // modules/chao_de_fabrica/index.php
-// Esta página lista as Ordens de Produção prontas para apontamento no Chão de Fábrica.
+// Esta página lista as Ordens de Produção prontas para apontamento no Chão de Fbrica.
 
 // Inicia a sessão para usar variáveis de sessão
 session_start();
@@ -35,7 +35,7 @@ if (isset($_SESSION['message'])) {
 $search_term = sanitizeInput($_GET['search_term'] ?? '');
 $filter_field = sanitizeInput($_GET['filter_field'] ?? 'op.numero_op'); 
 
-// Mapeamento dos campos de exibição para os nomes das colunas no DB
+// Mapeamento dos campos de exibião para os nomes das colunas no DB
 $filter_options = [
     'op.numero_op' => 'Número da OP',
     'p.nome' => 'Produto',
@@ -43,7 +43,7 @@ $filter_options = [
     'm.nome' => 'Máquina'
 ];
 
-// --- Lógica de Paginação ---
+// --- Lógica de Paginaão ---
 $items_per_page = 10;
 $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 if ($current_page < 1) $current_page = 1;
@@ -51,7 +51,7 @@ if ($current_page < 1) $current_page = 1;
 $offset = ($current_page - 1) * $items_per_page;
 
 // Constrói a cláusula WHERE para contagem e busca (sem LIMIT ainda)
-$where_clause = " WHERE op.deleted_at IS NULL AND op.status IN ('pendente', 'em_producao')"; 
+$where_clause = " WHERE op.deleted_at IS NULL AND op.status IN ('pendente', 'em_producao', 'concluida')"; 
 $params_count_and_fetch = [];
 
 if (!empty($search_term) && array_key_exists($filter_field, $filter_options)) {
@@ -122,7 +122,7 @@ try {
 } catch (mysqli_sql_exception $e) {
     $message = "Erro ao carregar Ordens de Produção (SQL): " . $e->getMessage();
     $message_type = "error";
-    error_log("Erro fatal ao carregar OPs para exibição: " . $e->getMessage());
+    error_log("Erro fatal ao carregar OPs para exibião: " . $e->getMessage());
 }
 ?>
 
@@ -188,7 +188,7 @@ try {
                         ?>
                         <a href="apontar.php?id=<?php echo $op['id']; ?>" class="button small add <?php echo $apontar_disabled_class; ?>" <?php echo $apontar_onclick; ?>>Apontar</a>
                         <a href="consumo.php?op_id=<?php echo $op['id']; ?>" class="button small">Consumir</a>
-                        <a href="insumos.php?id=<?php echo $op['id']; ?>" class="button small edit">Insumos</a>
+                        <a href="insumos.php?id=<?php echo $op['id']; ?>" class="button small edit">Materiais</a>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -218,7 +218,7 @@ try {
 
             // Link para a próxima página
             if ($current_page < $total_pages) {
-                echo '<a href="?' . $pagination_base_query . '&page=' . ($current_page + 1) . '" class="page-link">Próxima &raquo;</a>';
+                echo '<a href="?' . $pagination_base_query . '&page=' . ($current_page + 1) . '" class="page-link">Prxima &raquo;</a>';
             }
         }
         ?>
