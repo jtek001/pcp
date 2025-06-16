@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['user_name'] = $user['nome']; // Nome real do operador
                         // --- INÍCIO DA ALTERAÇÃO: Armazenar 'cargo' na sessão (09/06/2025 - IA) ---
                         $_SESSION['user_cargo'] = $user['cargo']; // Armazena o cargo do operador
-                        // --- FIM DA ALTERAÇÃO: Armazenar 'cargo' ---
+                        // --- FIM DA ALTERAÃO: Armazenar 'cargo' ---
                         $_SESSION['message'] = "Login realizado com sucesso!";
                         $_SESSION['message_type'] = "success";
 
@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 40px; /* Aumenta padding */
             border-radius: 15px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.3); /* Sombra mais forte */
-            max-width: 450px; /* Limita a largura do formulário */
+            max-width: 350px; /* Limita a largura do formulário */
             width: 90%; /* Responsivo */
             background-color: #fff;
             margin: auto; /* Centraliza */
