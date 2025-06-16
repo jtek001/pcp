@@ -38,6 +38,7 @@ nav ul {
     display: flex; /* Layout flexbox para os itens do menu */
     justify-content: center; /* Centraliza os itens horizontalmente */
     flex-wrap: wrap; /* Quebra linha em telas pequenas */
+    font-size: 14px; 
 }
 nav ul li {
     margin: 0 18px; /* Espaçamento entre os itens do menu */
@@ -49,6 +50,7 @@ nav ul li a {
     border-radius: 10px; /* Cantos mais arredondados */
     transition: background-color 0.3s ease, transform 0.2s ease; /* Transições suaves */
     font-weight: 500; /* Levemente mais negrito */
+    font-size: 13px; 
 }
 nav ul li a:hover {
     background-color: #34495e; /* Fundo mais escuro ao passar o mouse */
@@ -150,7 +152,7 @@ table tbody tr:hover {
     font-size: 17px;
     font-weight: 600;
     transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-    box-shadow: 0 5px 10px rgba(0,0,0,0.18); /* Sombra más pronunciada */
+    box-shadow: 0 5px 10px rgba(0,0,0,0.18); /* Sombra ms pronunciada */
     margin-right: 12px; /* Espaçamento entre botões */
     min-width: 130px; /* Largura mínima para consistência */
 }
@@ -174,7 +176,7 @@ table tbody tr:hover {
     background-color: #7f8c8d;
 }
 
-/* Estilo para Botões e Campos Desativados */
+/* Estilo para Botes e Campos Desativados */
 .button.disabled,
 a.button.disabled,
 .disabled-field { /* Aplica estilo a elementos desativados por JS/PHP */
@@ -296,7 +298,7 @@ form textarea:required:valid {
     border-color: #27ae60;
     box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.2);
 }
-/* Estilo para campos obrigatórios inválidos (vermelho) */
+/* Estilo para campos obrigatórios invlidos (vermelho) */
 form input:required:invalid:not(:placeholder-shown),
 form select:required:invalid,
 form textarea:required:invalid {
@@ -409,7 +411,7 @@ form button[type="submit"] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 15px; /* Similar ao botão small, mas um pouco maior */
+    padding: 10px 15px; /* Similar ao boto small, mas um pouco maior */
     border: 1px solid #ccc;
     border-radius: 8px; /* Cantos arredondados */
     background-color: #f9f9f9; /* Fundo claro */
@@ -439,7 +441,7 @@ form button[type="submit"] {
 }
 
 .pagination .page-link.active:hover {
-    background-color: #2980b9; /* Escurece um pouco no hover da página ativa */
+    background-color: #2980b9; /* Escurece um pouco no hover da pgina ativa */
     box-shadow: 0 4px 8px rgba(0,0,0,0.25);
 }
 
@@ -448,7 +450,7 @@ form button[type="submit"] {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 25px; /* Espaamento entre os cards */
+    gap: 15px; /* Espaamento entre os cards */
     margin-top: 40px;
     margin-bottom: 50px;
 }
@@ -461,7 +463,7 @@ form button[type="submit"] {
     text-align: center;
     flex: 1; /* Permite que os cards cresçam e diminuam */
     min-width: 220px; /* Largura mínima para evitar que fiquem muito pequenos */
-    max-width: 300px; /* Largura máxima para controle em telas grandes */
+    max-width: 300px; /* Largura mxima para controle em telas grandes */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -488,7 +490,7 @@ form button[type="submit"] {
 .indicator-card .indicator-description {
     font-size: 0.95em;
     color: #7f8c8d; /* Cinza suave */
-    min-height: 40px; /* Garante altura mínima para alinhamento */
+    min-height: 40px; /* Garante altura mnima para alinhamento */
 }
 
 /* Estilo para cards de alerta (com cores diferentes) */
@@ -545,7 +547,7 @@ footer {
 
 .modal-content {
     background-color: #fefefe;
-    padding: 40px; /* Más padding */
+    padding: 40px; /* Ms padding */
     border-radius: 15px; /* Cantos arredondados */
     box-shadow: 0 10px 25px rgba(0,0,0,0.3); /* Sombra más forte */
     width: 90%;
@@ -641,7 +643,7 @@ footer {
     }
     .search-container button,
     .search-container .button-clear {
-        width: 100%; /* Estica botões para largura total */
+        width: 100%; /* Estica botes para largura total */
     }
 
     /* Ajuste responsivo para indicadores */
