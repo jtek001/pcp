@@ -4,21 +4,38 @@
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../includes/header.php';
 
-// Lista de relatórios disponíveis. Podemos adicionar mais aqui no futuro.
+// Lista de relatórios disponíveis.
 $relatorios_disponiveis = [
     [
         'titulo' => 'Produção por Período',
         'descricao' => 'Gera um relatório detalhado de todos os apontamentos de produção realizados num intervalo de datas específico.',
         'link' => 'relatorio_producao_periodo.php',
-        'icone' => 'fa-calendar-alt' // Ícone do Font Awesome
+        'icone' => 'fa-calendar-alt'
     ],
-    // Futuramente, outros relatórios podem ser adicionados aqui
-    // [
-    //     'titulo' => 'Consumo de Insumos por OP',
-    //     'descricao' => 'Detalha todos os insumos consumidos para uma Ordem de Produção específica.',
-    //     'link' => 'relatorio_consumo_op.php',
-    //     'icone' => 'fa-cogs'
-    // ],
+    [
+        'titulo' => 'Entrada de Matéria-Prima',
+        'descricao' => 'Relatório de todas as matérias-primas que deram entrada no estoque, filtrado por período e produto.',
+        'link' => 'relatorio_entradas_materiais.php',
+        'icone' => 'fa-truck-loading'
+    ],
+    [
+        'titulo' => 'Posição de Estoque',
+        'descricao' => 'Exibe o saldo atual de todos os produtos, com filtros por categoria e indicadores de estoque baixo.',
+        'link' => 'relatorio_estoque.php',
+        'icone' => 'fa-boxes-stacked'
+    ],
+    [
+        'titulo' => 'Relatório de Paradas',
+        'descricao' => 'Analisa o tempo total e os principais motivos das paradas de máquina em um período.',
+        'link' => '../manutencao/relatorio_paradas.php', // Link para o relatório no módulo de manutenção
+        'icone' => 'fa-tools'
+    ],
+    [
+        'titulo' => 'Inventário de Produção',
+        'descricao' => 'Lista os lotes produzidos que ainda não foram consumidos e estão disponíveis em estoque.',
+        'link' => 'relatorio_inventario.php',
+        'icone' => 'fa-clipboard-list'
+    ]
 ];
 
 ?>
