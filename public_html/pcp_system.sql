@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Tempo de geração: 15/06/2025 às 03:39
+-- Tempo de geração: 16/06/2025 às 03:15
 -- Versão do servidor: 10.11.11-MariaDB-ubu2204
 -- Versão do PHP: 8.0.30
 
@@ -182,7 +182,8 @@ INSERT INTO `apontamentos_producao` (`id`, `ordem_producao_id`, `maquina_id`, `o
 (158, 51, 5, 5, 800.00, '2025-06-15 00:14:00', '2025-06-15 00:17:26', '', '2506269286-158', NULL),
 (159, 51, 5, 5, 800.00, '2025-06-15 00:17:00', '2025-06-15 00:17:47', '', '2506269286-159', NULL),
 (160, 51, 5, 5, 990.00, '2025-06-16 00:23:00', '2025-06-15 00:23:22', '', '2506269286-160', NULL),
-(161, 51, 5, 5, 10.00, '2025-06-16 00:24:00', '2025-06-15 00:24:48', '', '2506269286-161', NULL);
+(161, 51, 5, 5, 10.00, '2025-06-16 00:24:00', '2025-06-15 00:24:48', '', '2506269286-161', NULL),
+(163, 63, 5, 5, 1700.00, '2025-06-15 21:21:00', '2025-06-15 21:22:06', '', '2506986899-163', NULL);
 
 -- --------------------------------------------------------
 
@@ -230,7 +231,8 @@ INSERT INTO `consumo_producao` (`id`, `apontamento_id`, `ordem_producao_id`, `pr
 (40, 155, 51, 46, 23000.0000, '2025-06-15 03:18:00', 5, NULL, NULL),
 (41, 147, 51, 14, 10400.0000, '2025-06-15 03:19:00', 5, NULL, NULL),
 (42, 148, 51, 14, 10400.0000, '2025-06-15 03:22:00', 5, NULL, NULL),
-(43, NULL, 51, 47, 650.0000, '2025-06-15 03:23:00', 5, 'Consumo de matéria-prima direto para a OP.', NULL);
+(43, NULL, 51, 47, 650.0000, '2025-06-15 03:23:00', 5, 'Consumo de matéria-prima direto para a OP.', NULL),
+(44, NULL, 61, 43, 1.0000, '2025-06-16 02:56:00', 4, 'Consumo de insumo direto para a OP.', '2025-06-15 23:57:38');
 
 -- --------------------------------------------------------
 
@@ -311,7 +313,10 @@ INSERT INTO `empenho_materiais` (`id`, `produto_id`, `ordem_producao_id`, `quant
 (85, 4, 58, 27664.00, 27664.00, '2025-06-14 17:46:13', 'Empenho automático para OP 2506787821', '2025-06-14 17:55:56'),
 (86, 43, 59, 0.00, 74.69, '2025-06-14 17:48:00', 'Empenho automático para OP 2506473569', '2025-06-14 20:00:53'),
 (87, 44, 60, 0.00, 1456.51, '2025-06-14 17:50:00', 'Empenho automático para OP 2506148450', '2025-06-14 19:13:40'),
-(88, 43, 61, 0.00, 101.69, '2025-06-14 20:23:46', 'Empenho automático para OP 2506960359', '2025-06-14 20:38:23');
+(88, 43, 61, 0.00, 101.69, '2025-06-14 20:23:46', 'Empenho automático para OP 2506960359', '2025-06-14 20:38:23'),
+(89, 14, 63, 800.00, 14400.00, '2025-06-15 16:59:51', 'Empenho automático para OP 2506986899', NULL),
+(90, 46, 63, 900.00, 16200.00, '2025-06-15 16:59:51', 'Empenho automático para OP 2506986899', NULL),
+(91, 47, 63, 25.00, 450.00, '2025-06-15 16:59:51', 'Empenho automático para OP 2506986899', NULL);
 
 --
 -- Acionadores `empenho_materiais`
@@ -510,7 +515,7 @@ CREATE TABLE `maquinas` (
 --
 
 INSERT INTO `maquinas` (`id`, `nome`, `descricao`, `status`, `numero_serie`, `tag_ativo`, `fabricante`, `modelo_maquina`, `tipo_maquina`, `localizacao`, `data_aquisicao`, `data_ultima_manutencao`, `capacidade_hora`, `unidade_capacidade`, `deleted_at`) VALUES
-(1, 'Fresa CNC V-200', 'Centro de usinagem CNC de alta precisão para metais.', 'manutencao', 'SN-FRESAV200-001', 'MAQ-001', 'MetalTech', 'V-200 Industrial', 'Usinagem', 'Setor CNC 1', '2020-03-15', '2024-05-10', 15.50, 'Peças/h', NULL),
+(1, 'Fresa CNC V-200', 'Centro de usinagem CNC de alta precisão para metais.', 'operacional', 'SN-FRESAV200-001', 'MAQ-001', 'MetalTech', 'V-200 Industrial', 'Usinagem', 'Setor CNC 1', '2020-03-15', '2024-05-10', 15.50, 'Peças/h', NULL),
 (2, 'Injetora Plástica IP-500', 'Máquina de injeção de plástico para peças de médio porte.', 'operacional', 'SN-INJETORA-500-A', 'MAQ-002', 'PlastForm', 'IP-500 Deluxe', 'Injeção', 'Setor Plástico A', '2019-08-20', '2024-04-25', 120.00, 'Kg/h', NULL),
 (3, 'Prensa Hidráulica PH-30T', 'Prensa de 30 toneladas para estampagem e corte.', 'operacional', 'SN-PRESSA-30T-XYZ', 'MAQ-003', 'HeavyPress', 'PH-30T Compact', 'Conformação', 'Setor Estampagem', '2018-01-10', '2024-06-01', 50.00, 'Ciclos/h', NULL),
 (4, 'Refiladeira', 'Robô articulado para soldagem automatizada de precisão.', 'operacional', 'SN-ROBOT-AM-2.1', 'MAQ-004', 'RoboWeld', 'ArcMaster 2.1', 'Soldagem', 'Célula Robótica 1', '2021-11-01', '2024-05-20', 25.00, 'Unidades/h', NULL),
@@ -521,7 +526,7 @@ INSERT INTO `maquinas` (`id`, `nome`, `descricao`, `status`, `numero_serie`, `ta
 (9, 'Serraria', 'Máquina de embalagem para produtos acabados.', 'operacional', 'SN-EMB-VERT-02', 'MAQ-009', 'PackFast', 'VertPack 1.0', 'Embalagem', 'Setor de Expedição', '2021-07-12', '2024-05-22', 150.00, 'Pacotes/h', NULL),
 (10, 'Forno de Tratamento Térmico', 'Forno para tratamento térmico de metais.', 'operacional', 'SN-FORNO-TT-05', 'MAQ-010', 'HeatWorks', 'TT-5 Industrial', 'Tratamento', 'Setor Tratamento', '2020-10-01', '2024-04-18', 5.00, 'Batches/h', '2025-06-06 19:19:31'),
 (11, 'Corte de Blocos', 'Corte de metais espessos com tecnologia a plasma.', 'operacional', 'SN-PLASMA-MAX', 'MAQ-011', 'PlasmaCut', 'MaxPlasma 300', 'Corte', 'Setor de Corte', '2023-08-01', '2024-05-28', 6.00, 'Peças/h', NULL),
-(12, 'Fresadora Manual FM-10', 'Fresadora manual para pequenos ajustes e protótipos.', 'parada', 'SN-FRESAM-010', 'MAQ-012', 'ManualTools', 'FM-10 Basic', 'Usinagem', 'Oficina Mecânica', '2015-05-01', '2024-01-15', 2.00, 'Peças/h', NULL),
+(12, 'Fresadora Manual FM-10', 'Fresadora manual para pequenos ajustes e protótipos.', 'operacional', 'SN-FRESAM-010', 'MAQ-012', 'ManualTools', 'FM-10 Basic', 'Usinagem', 'Oficina Mecânica', '2015-05-01', '2024-01-15', 2.00, 'Peças/h', NULL),
 (13, 'Furadeira de Bancada Antiga', 'Furadeira manual para furos de pequeno diâmetro.', 'operacional', 'SN-FURAD-ANTIGA', 'MAQ-013', 'VelhaGuarda', 'FB-500', 'Usinagem', 'Depósito', '2010-01-01', '2023-12-01', 10.00, 'Peças/h', NULL),
 (14, 'Estampados', '1', 'operacional', '1', '1', '1', '1', '1', '1', '2025-06-06', '2025-06-06', 1.00, '1', '2025-06-06 19:23:48');
 
@@ -589,6 +594,37 @@ INSERT INTO `modelos_lookup` (`id`, `nome`, `descricao`) VALUES
 (4, 'Industrial', 'Modelo para uso industrial.'),
 (5, 'Personalizado', 'Modelo sob medida.'),
 (16, 'Taeda', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para tabela `motivos_parada`
+--
+
+CREATE TABLE `motivos_parada` (
+  `id` int(11) NOT NULL,
+  `codigo` varchar(20) NOT NULL,
+  `nome` varchar(100) NOT NULL,
+  `descricao` text DEFAULT NULL,
+  `grupo` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `deleted_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Despejando dados para a tabela `motivos_parada`
+--
+
+INSERT INTO `motivos_parada` (`id`, `codigo`, `nome`, `descricao`, `grupo`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 'A01', 'FALTA DE ENERGIA ELETRICA', 'Problemas na concessionária', 'EXTERNOS', '2025-06-15 21:45:56', '2025-06-15 21:45:56', NULL),
+(2, 'B01', 'PROGRAMAÇÃO', 'Parada programada', 'GESTÃO', '2025-06-15 21:47:09', '2025-06-15 21:49:48', NULL),
+(3, 'C01', 'PROBLEMA MECÂNICO', 'Descrever problema mecânico na observação', 'MANUTENÇÃO', '2025-06-15 21:49:24', '2025-06-15 21:49:24', NULL),
+(4, 'D01', 'SET-UP', 'Configuração ou troca de produto', 'OPERACIONAL', '2025-06-15 21:51:25', '2025-06-15 21:51:25', NULL),
+(5, 'A02', 'CONDIÇÕES METEREOLÓGICAS', 'Relativo ao clima.', 'EXTERNOS', '2025-06-15 21:55:23', '2025-06-15 22:15:46', NULL),
+(6, 'A03', 'FERIADOS', 'Feriados', 'EXTERNOS', '2025-06-15 21:56:26', '2025-06-15 21:56:26', NULL),
+(7, 'A04', 'PARADA ESTRATÉGICA', 'Parada planejada específica', 'EXTERNOS', '2025-06-15 21:58:00', '2025-06-15 21:58:00', NULL),
+(8, 'A99', 'OUTROS', 'Sugestivo caso não identifique', 'EXTERNOS', '2025-06-15 21:58:50', '2025-06-15 22:09:22', '2025-06-15 19:09:22');
 
 -- --------------------------------------------------------
 
@@ -1118,7 +1154,16 @@ INSERT INTO `movimentacoes_estoque` (`id`, `produto_id`, `tipo_movimentacao`, `q
 (512, 14, 'saida', 10400.00, '2025-06-15 00:22:35', 'Consumo Produção', 'Consumo referente ao lote: 2506747004-148'),
 (513, 45, 'entrada', 990.00, '2025-06-16 00:23:00', 'Produção OP: 2506269286', 'Entrada por apontamento. Lote: 2506269286-160'),
 (514, 47, 'saida', 650.00, '2025-06-15 00:24:12', 'Produção', 'Consumo de Matéria-Prima para OP'),
-(515, 45, 'entrada', 10.00, '2025-06-16 00:24:00', 'Produção OP: 2506269286', 'Entrada por apontamento. Lote: 2506269286-161');
+(515, 45, 'entrada', 10.00, '2025-06-16 00:24:00', 'Produção OP: 2506269286', 'Entrada por apontamento. Lote: 2506269286-161'),
+(517, 45, 'entrada', 1700.00, '2025-06-15 21:21:00', 'Produção OP: 2506986899', 'Entrada por apontamento. Lote: 2506986899-163'),
+(518, 36, 'empenho', 15.00, '2025-06-15 21:25:00', 'Empenho Manual OP:  (Resp: Jurandir Prestes (M001))', ''),
+(519, 36, 'desempenho', 15.00, '2025-06-16 00:38:02', 'Desempenho Manual OP: 2506986899 (Empenho ID: 92)', 'Empenho manual excluído (ID: 92) - Quantidade liberada do empenho.'),
+(520, 43, 'saida', 1.00, '2025-06-15 23:57:19', 'Produção', 'Consumo de Insumo para OP'),
+(521, 43, 'entrada', 1.00, '2025-06-15 23:57:38', 'Estorno Insumo', 'Estorno do Consumo de Insumo ID: 44'),
+(522, 46, 'saida', 1.00, '2025-06-15 23:58:26', 'Consumo Produção', 'Consumo referente ao lote: 2506480978-156'),
+(523, 46, 'entrada', 1.00, '2025-06-15 23:58:42', 'Estorno Consumo', 'Estorno do Consumo ID: 45'),
+(524, 46, 'saida', 1.00, '2025-06-15 23:59:12', 'Consumo Produção', 'Consumo referente ao lote: 2506480978-156'),
+(525, 46, 'entrada', 1.00, '2025-06-15 23:59:41', 'Estorno Consumo', 'Estorno do Consumo ID: 46');
 
 -- --------------------------------------------------------
 
@@ -1145,7 +1190,7 @@ CREATE TABLE `operadores` (
 INSERT INTO `operadores` (`id`, `matricula`, `username`, `cargo`, `ativo`, `password_hash`, `nome`, `localizacao`, `deleted_at`) VALUES
 (1, 'M005', 'carlos', 'Apontador', 1, '$2y$10$mqcjAFJcPSboQiG9f6pBcOxuEzCad3xOHkwlBiKq36txqoTuxhflK', 'Carlos Silva', 'usuario', NULL),
 (2, 'M002', 'mariana', 'Apontador', 1, NULL, 'Mariana Dantas', 'usuario', NULL),
-(3, 'M003', 'rafael', 'Analista', 1, '$2y$10$D5mC7kXp2G212VeX.WWH5eSoPU58CnqX.UGf/v8TpAEEC0ZyZajRm', 'Rafael', 'usuario', NULL),
+(3, 'M003', 'rafael', 'Apaontador', 1, '$2y$10$D5mC7kXp2G212VeX.WWH5eSoPU58CnqX.UGf/v8TpAEEC0ZyZajRm', 'Rafael', 'usuario', NULL),
 (4, 'M004', 'fernando', 'Apontador', 1, NULL, 'Fernando Alves', 'usuario', NULL),
 (5, 'M001', 'jurandir', 'admin', 1, '$2y$10$qi3daBeWh.dHECMxTpilLuEK7oCHNB9BIV38SF6EmozUtX7bjWrve', 'Jurandir Prestes', 'pcp', NULL),
 (7, 'M006', 'kelly', 'Analista', 1, '$2y$10$XH0zYJNkWd5gL/DoM9fpduXIFk2fECHI4K/Jf6Y0KPBlZZdwMGpQq', 'Rosekelly Cirineu', 'usuario', NULL);
@@ -1237,7 +1282,8 @@ INSERT INTO `ordens_producao` (`id`, `numero_op`, `numero_pedido`, `produto_id`,
 (59, '2506473569', '1406251306', 4, 9, 0.00, '2025-06-14', '2025-06-21', NULL, 'cancelada', '', '2025-06-14 20:01:21'),
 (60, '2506148450', '1406251306', 1, 9, 31122.00, '2025-06-14', '2025-06-21', '2025-06-14 19:14:36', 'concluida', '', NULL),
 (61, '2506960359', '1406251306', 4, 9, 37664.00, '2025-06-14', '2025-06-21', '2025-06-14 20:38:23', 'concluida', '', NULL),
-(62, '2506024611', '2125067577', 43, 11, 1000.00, '2025-06-14', '2025-06-21', NULL, 'pendente', '', '2025-06-14 20:40:11');
+(62, '2506024611', '2125067577', 43, 11, 1000.00, '2025-06-14', '2025-06-21', NULL, 'pendente', '', '2025-06-14 20:40:11'),
+(63, '2506986899', '1406251306', 45, 5, 1800.00, '2025-06-15', '2025-06-22', NULL, 'em_producao', '', NULL);
 
 --
 -- Acionadores `ordens_producao`
@@ -1338,6 +1384,42 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
+-- Estrutura para tabela `paradas_maquina`
+--
+
+CREATE TABLE `paradas_maquina` (
+  `id` int(11) NOT NULL,
+  `maquina_id` int(11) NOT NULL,
+  `motivo_id` int(11) NOT NULL,
+  `operador_id` int(11) DEFAULT NULL,
+  `data_hora_inicio` datetime NOT NULL,
+  `data_hora_fim` datetime DEFAULT NULL,
+  `duracao_minutos` int(11) DEFAULT NULL COMMENT 'Duração calculada em minutos',
+  `observacoes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `deleted_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Despejando dados para a tabela `paradas_maquina`
+--
+
+INSERT INTO `paradas_maquina` (`id`, `maquina_id`, `motivo_id`, `operador_id`, `data_hora_inicio`, `data_hora_fim`, `duracao_minutos`, `observacoes`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(2, 12, 2, 4, '2025-06-15 21:38:00', '2025-06-15 21:14:00', 24, '', '2025-06-15 22:38:26', '2025-06-16 00:14:10', NULL),
+(3, 5, 3, 5, '2025-06-15 19:44:00', '2025-06-15 21:12:00', 88, '', '2025-06-15 22:44:52', '2025-06-16 00:12:48', NULL),
+(4, 12, 5, 4, '2025-06-15 19:48:00', '2025-06-15 19:59:00', 11, '', '2025-06-15 22:49:03', '2025-06-15 22:59:11', NULL),
+(5, 3, 6, 5, '2025-06-15 19:49:00', NULL, NULL, '', '2025-06-15 22:49:10', '2025-06-15 22:58:57', '2025-06-15 19:58:57'),
+(6, 5, 3, 5, '2025-06-15 14:23:00', '2025-06-15 14:33:00', 10, '', '2025-06-15 23:23:42', '2025-06-15 23:23:42', NULL),
+(7, 5, 3, 5, '2025-06-15 15:48:00', '2025-06-15 16:00:00', 12, '', '2025-06-15 23:24:03', '2025-06-15 23:24:03', NULL),
+(8, 12, 4, 5, '2025-06-15 13:00:00', '2025-06-15 13:15:00', 15, '', '2025-06-15 23:24:28', '2025-06-15 23:24:28', NULL),
+(9, 5, 4, 5, '2025-06-15 16:40:00', '2025-06-15 16:48:00', 8, '', '2025-06-15 23:41:16', '2025-06-15 23:41:16', NULL),
+(10, 12, 4, 5, '2025-06-15 17:13:00', '2025-06-15 17:25:00', 12, '', '2025-06-16 00:14:01', '2025-06-16 00:14:01', NULL),
+(11, 12, 4, 5, '2025-06-16 18:00:00', '2025-06-16 18:12:00', 12, '', '2025-06-16 00:18:02', '2025-06-16 00:18:02', NULL);
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura para tabela `pedidos_venda_lookup`
 --
 
@@ -1411,25 +1493,25 @@ INSERT INTO `produtos` (`id`, `nome`, `codigo`, `descricao`, `unidade_medida`, `
 (6, 'Madeira Serrada B 15x70x1200', '628892879852', 'Madeira Serrada B 15x90x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'A', '', 'Bruto', 'Palete', '', 4.00, 0.00, 0.00, '', '', 15.00, 70.00, 1200.00, 25, 14, 350, 0, NULL),
 (7, 'Madeira Serrada C 15x70x1200', '138808764334', 'Madeira Serrada C 15x70x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'C', '', 'Bruto', 'Palete', '', 4.00, 0.00, 0.00, '', '', 15.00, 70.00, 1200.00, 0, 0, 0, 0, NULL),
 (8, 'Madeira Serrada C 15x90x1200', '201388344624', 'Madeira Serrada C 15x90x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'C', '', 'Bruto', 'Palete', '', 4.00, 0.00, 0.00, '', '', 15.00, 90.00, 1200.00, 0, 0, 0, 0, NULL),
-(9, 'Madeira Refilada A 30x30x1200', '519063057735', 'Madeira Refilada A 30x30x1200', 'M3', 50.00, 0.00, 0.00, 'Refilados', 'A', '', 'Aplainado', 'Tabique', '', 2.00, 0.00, 0.00, '', '', 30.00, 30.00, 1200.00, 0, 0, 0, 0, NULL),
-(10, 'Madeira Refilada A 45x45x1200', '219458739724', 'Madeira Refilada A 45x45x1200', 'M3', 50.00, 0.00, 0.00, 'Refilados', 'A', '', 'Aplainado', 'Tabique', '', 3.00, 0.00, 0.00, '', '', 45.00, 45.00, 1200.00, 0, 0, 0, 0, NULL),
+(9, 'Madeira Refilada A 30x30x1200', '519063057735', 'Madeira Refilada A 30x30x1200', 'PC', 50.00, 0.00, 0.00, 'Refilados', 'A', '', 'Aplainado', 'Tabique', '', 2.00, 0.00, 0.00, '', 'M3', 30.00, 30.00, 1200.00, 0, 0, 0, 0, NULL),
+(10, 'Madeira Refilada A 45x45x1200', '219458739724', 'Madeira Refilada A 45x45x1200', 'PC', 50.00, 0.00, 0.00, 'Refilados', 'A', '', 'Aplainado', 'Tabique', '', 3.00, 0.00, 0.00, '', 'M3', 45.00, 45.00, 1200.00, 0, 0, 0, 0, NULL),
 (11, 'Madeira Destopada A 45x45x450', '525647525154', 'Madeira Destopada A 45x45x450', 'M3', 50.00, 0.00, 0.00, 'Blocos', 'A', '', 'Aplainado', 'Palete', '', 3.00, 0.00, 0.00, '', '', 45.00, 45.00, 450.00, 0, 0, 0, 0, NULL),
-(12, 'Madeira Refilada A 17x120x900', 'R98072744635', 'Madeira Serrada A 15x120x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'C', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', '', 17.00, 120.00, 900.00, 25, 12, 300, 10, NULL),
-(13, 'Madeira Refilada B 17x120x900', 'R89589886634', 'Madeira Serrada B 15x120x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'A', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', '', 17.00, 120.00, 900.00, 0, 0, 0, 0, NULL),
-(14, 'Madeira Refilada A 17x90x900', 'R56226383889', 'Madeira Serrada A 15x90x1200', 'PC', 15.00, 0.00, 0.00, 'Serrados', 'A', '', 'Aplainado', 'Tabique', '', 15.00, 0.00, 0.00, '', 'M3', 17.00, 90.00, 900.00, 25, 14, 350, 0, NULL),
-(15, 'Madeira Refilada A 17x70x900', 'R60456457991', 'Madeira Serrada A 15x70x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'A', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', '', 17.00, 70.00, 900.00, 25, 15, 375, 0, NULL),
-(16, 'Madeira Refilada B 17x90x900', 'R39859349152', 'Madeira Serrada B 15x90x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'B', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', '', 17.00, 90.00, 900.00, 25, 12, 300, 0, NULL),
-(17, 'Madeira Refilada B 17x70x900', 'R28892879852', 'Madeira Serrada B 15x90x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'A', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', '', 17.00, 70.00, 900.00, 25, 14, 350, 0, NULL),
-(18, 'Madeira Refilada C 17x70x900', 'R38808764334', 'Madeira Serrada C 15x70x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'C', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', '', 17.00, 70.00, 900.00, 0, 0, 0, 0, NULL),
-(19, 'Madeira Refilada C 17x90x900', 'R01388344624', 'Madeira Serrada C 15x90x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'C', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', '', 17.00, 90.00, 900.00, 0, 0, 0, 0, NULL),
-(20, 'Madeira Refilada A 17x120x900', 'RB8072744635', 'Madeira Serrada A 15x120x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'C', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', '', 17.00, 120.00, 900.00, 25, 12, 300, 10, NULL),
-(21, 'Madeira Refilada B 17x120x900', 'RB9589886634', 'Madeira Serrada B 15x120x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'A', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', '', 17.00, 120.00, 900.00, 0, 0, 0, 0, NULL),
-(22, 'Madeira Refilada A 17x90x900', 'RB6226383889', 'Madeira Serrada A 15x90x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'A', '', 'Aplainado', 'Tabique', '', 4.00, 0.00, 0.00, '', '', 17.00, 90.00, 900.00, 25, 14, 350, 0, NULL),
-(23, 'Madeira Refilada A 17x70x900', 'RB0456457991', 'Madeira Serrada A 15x70x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'A', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', '', 17.00, 70.00, 900.00, 25, 15, 375, 0, NULL),
-(24, 'Madeira Refilada B 17x90x900', 'RB9859349152', 'Madeira Serrada B 15x90x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'B', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', '', 17.00, 90.00, 900.00, 25, 12, 300, 0, NULL),
-(25, 'Madeira Refilada B 17x70x900', 'RB8892879852', 'Madeira Serrada B 15x90x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'A', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', '', 17.00, 70.00, 900.00, 25, 14, 350, 0, NULL),
-(26, 'Madeira Refilada C 17x70x900', 'RB8808764334', 'Madeira Serrada C 15x70x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'C', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', '', 17.00, 70.00, 900.00, 0, 0, 0, 0, NULL),
-(27, 'Madeira Refilada C 17x90x900', 'RB1388344624', 'Madeira Serrada C 15x90x1200', 'M3', 100.00, 0.00, 0.00, 'Serrados', 'C', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', '', 17.00, 90.00, 900.00, 0, 0, 0, 0, NULL),
+(12, 'Madeira Refilada A 17x120x900', 'R98072744635', 'Madeira Serrada A 15x120x1200', 'PC', 100.00, 0.00, 0.00, 'Serrados', 'C', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', 'M3', 17.00, 120.00, 900.00, 25, 12, 300, 10, NULL),
+(13, 'Madeira Refilada B 17x120x900', 'R89589886634', 'Madeira Serrada B 15x120x1200', 'PC', 100.00, 0.00, 0.00, 'Serrados', 'A', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', 'M3', 17.00, 120.00, 900.00, 0, 0, 0, 0, NULL),
+(14, 'Madeira Refilada A 17x90x900', 'R56226383889', 'Madeira Serrada A 15x90x1200', 'PC', 15.00, 0.00, 1600.00, 'Serrados', 'A', '', 'Aplainado', 'Tabique', '', 15.00, 0.00, 0.00, '', 'M3', 17.00, 90.00, 900.00, 25, 14, 350, 0, NULL),
+(15, 'Madeira Refilada A 17x70x900', 'R60456457991', 'Madeira Serrada A 15x70x1200', 'PC', 100.00, 0.00, 0.00, 'Serrados', 'A', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', 'M3', 17.00, 70.00, 900.00, 25, 15, 375, 0, NULL),
+(16, 'Madeira Refilada B 17x90x900', 'R39859349152', 'Madeira Serrada B 15x90x1200', 'PC', 100.00, 0.00, 0.00, 'Serrados', 'B', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', 'M3', 17.00, 90.00, 900.00, 25, 12, 300, 0, NULL),
+(17, 'Madeira Refilada B 17x70x900', 'R28892879852', 'Madeira Serrada B 15x90x1200', 'PC', 100.00, 0.00, 0.00, 'Serrados', 'A', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', 'M3', 17.00, 70.00, 900.00, 25, 14, 350, 0, NULL),
+(18, 'Madeira Refilada C 17x70x900', 'R38808764334', 'Madeira Serrada C 15x70x1200', 'PC', 100.00, 0.00, 0.00, 'Serrados', 'C', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', 'M3', 17.00, 70.00, 900.00, 0, 0, 0, 0, NULL),
+(19, 'Madeira Refilada C 17x90x900', 'R01388344624', 'Madeira Serrada C 15x90x1200', 'PC', 100.00, 0.00, 0.00, 'Serrados', 'C', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', 'M3', 17.00, 90.00, 900.00, 0, 0, 0, 0, NULL),
+(20, 'Madeira Refilada A 17x120x900', 'RB8072744635', 'Madeira Serrada A 15x120x1200', 'PC', 100.00, 0.00, 0.00, 'Serrados', 'C', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', 'M3', 17.00, 120.00, 900.00, 25, 12, 300, 10, NULL),
+(21, 'Madeira Refilada B 17x120x900', 'RB9589886634', 'Madeira Serrada B 15x120x1200', 'PC', 100.00, 0.00, 0.00, 'Serrados', 'A', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', 'M3', 17.00, 120.00, 900.00, 0, 0, 0, 0, NULL),
+(22, 'Madeira Refilada A 17x90x900', 'RB6226383889', 'Madeira Serrada A 15x90x1200', 'PC', 100.00, 0.00, 0.00, 'Serrados', 'A', '', 'Aplainado', 'Tabique', '', 4.00, 0.00, 0.00, '', 'M3', 17.00, 90.00, 900.00, 25, 14, 350, 0, NULL),
+(23, 'Madeira Refilada A 17x70x900', 'RB0456457991', 'Madeira Serrada A 15x70x1200', 'PC', 100.00, 0.00, 0.00, 'Serrados', 'A', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', 'M3', 17.00, 70.00, 900.00, 25, 15, 375, 0, NULL),
+(24, 'Madeira Refilada B 17x90x900', 'RB9859349152', 'Madeira Serrada B 15x90x1200', 'PC', 100.00, 0.00, 0.00, 'Serrados', 'B', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', 'M3', 17.00, 90.00, 900.00, 25, 12, 300, 0, NULL),
+(25, 'Madeira Refilada B 17x70x900', 'RB8892879852', 'Madeira Serrada B 15x90x1200', 'PC', 100.00, 0.00, 0.00, 'Serrados', 'A', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', 'M3', 17.00, 70.00, 900.00, 25, 14, 350, 0, NULL),
+(26, 'Madeira Refilada C 17x70x900', 'RB8808764334', 'Madeira Serrada C 15x70x1200', 'PC', 100.00, 0.00, 0.00, 'Serrados', 'C', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', 'M3', 17.00, 70.00, 900.00, 0, 0, 0, 0, NULL),
+(27, 'Madeira Refilada C 17x90x900', 'RB1388344624', 'Madeira Serrada C 15x90x1200', 'PC', 100.00, 0.00, 0.00, 'Serrados', 'C', '', 'Aplainado', 'Palete', '', 4.00, 0.00, 0.00, '', 'M3', 17.00, 90.00, 900.00, 0, 0, 0, 0, NULL),
 (28, 'Placa Eletrônica Rev. A', '876543210987', 'Placa de controle principal', 'PC', 10.00, 50.00, 0.00, 'Componentes Eletrônicos', 'Circuitos Integrados', 'Standard', 'Bruto', 'Linha A', 'DES-001', 120.50, NULL, NULL, 'C2345', 'UND', 0.00, 0.00, 0.00, 2, 2, 4, 100, NULL),
 (29, 'Eixo de Aço Carbono', '123456789012', 'Eixo para máquinas industriais', 'PC', 5.00, 20.00, 0.00, 'Peças Usinadas', 'Usinagem CNC', 'Industrial', 'Acabado', 'Linha B', 'DES-002', 300.00, 12.00, 5.00, 'A1234', 'KG', 0.00, 0.00, 0.00, 1, 1, 1, 50, NULL),
 (30, 'Chapa de Alumínio 3mm', '987654321098', 'Chapa de Alumínio 500x500mm', 'M2', 2.00, 51.00, 0.00, 'Materiais Brutos', 'Metais', 'Standard', 'Acabado', 'Linha C', '', 50.00, 0.00, 0.00, 'X5678', 'M2', 3.00, 500.00, 500.00, 1, 1, 1, 10, NULL),
@@ -1438,7 +1520,7 @@ INSERT INTO `produtos` (`id`, `nome`, `codigo`, `descricao`, `unidade_medida`, `
 (33, 'Conector Elétrico 3 Vias', '789012345678', 'Conector para fiação interna', 'PC', 30.00, 1449.00, 0.00, 'Componentes Eletrônicos', 'Conectores', 'Standard', 'Acabado', 'Linha B', 'CONN-05', 200.00, 0.00, 0.00, 'C3V', 'PC', 0.00, 0.00, 0.00, 10, 10, 100, 1000, NULL),
 (34, 'Peça Plástica Injetada', '210987654321', 'Base plástica para montagem', 'PC', 15.00, 900.00, 0.00, 'Materiais Brutos', 'Plásticos', 'Industrial', 'Bruto', 'Linha C', 'PLAST-10', 150.00, NULL, NULL, 'PJT005', 'PC', 0.00, 0.00, 0.00, 5, 5, 25, 250, NULL),
 (35, 'Palete de Madeira Padrão', '345678901234', 'Palete para transporte de cargas', 'PC', 5.00, 10.00, 0.00, 'Embalagens', 'Madeira', 'Standard', 'Bruto', 'Componentes', NULL, 5.00, NULL, NULL, 'PAL001', 'PC', 0.00, 0.00, 0.00, 1, 1, 1, 1, NULL),
-(36, 'Rolamento Esférico', '654321098765', 'Rolamento de alta velocidade', 'PC', 25.00, 75.00, 0.00, 'Peças Usinadas', 'Usinagem CNC', 'Premium', 'Acabado', 'Especiais', 'ROL-03', 500.00, 0.00, 0.00, 'RLG001', 'PC', 0.00, 0.00, 0.00, 1, 1, 1, 10, NULL),
+(36, 'Rolamento Esférico', '654321098765', 'Rolamento de alta velocidade', 'PC', 25.00, 75.00, 0.00, 'Peças Usinadas', 'Usinagem CNC', 'Premium', 'Acabado', 'Componentes', 'ROL-03', 500.00, 0.00, 0.00, 'RLG001', 'PC', 0.00, 0.00, 0.00, 1, 1, 1, 10, NULL),
 (37, 'Pino de Fixação', '098765432109', 'Pino para fixação de componentes', 'PC', 50.00, 200.00, 0.00, 'Peças Usinadas', 'Usinagem CNC', 'Standard', 'Acabado', 'Linha A', 'PIN-01', 800.00, 0.00, 0.00, 'FIX001', 'PC', 0.00, 0.00, 0.00, 20, 50, 1000, 5000, NULL),
 (38, 'Fio de Cobre 2.5mm', '112233445566', 'Fio de cobre para eletrônica', 'M', 100.00, 848.00, 0.00, 'Materiais Brutos', 'Metais', 'Standard', 'Acabado', 'Linha B', '', 1000.00, 0.00, 0.00, 'FIO-001', 'KG', 2.50, 0.00, 1.00, 1, 1, 1, 1, NULL),
 (39, 'Plástico Bolha Grande', '778899001122', 'Rolo de Plástico Bolha 1m x 50m', 'M2', 5.00, 15.00, 0.00, 'Embalagens', 'Plástico Bolha', 'Standard', 'Acabado', 'Componentes', '', 10.00, 0.00, 0.00, 'PLB002', 'M2', 1.00, 1000.00, 50000.00, 1, 1, 1, 1, NULL),
@@ -1447,9 +1529,9 @@ INSERT INTO `produtos` (`id`, `nome`, `codigo`, `descricao`, `unidade_medida`, `
 (42, 'Subconjunto Módulo Eletrônico', 'SUB-MOD-002', 'Módulo eletrônico pré-montado', 'PC', 2.00, 5.00, 0.00, 'Submontagens', 'Eletrônicos', 'Standard', 'Acabado', 'Eletrônica', 'MOD-DES-B', 0.50, NULL, NULL, 'SUB-ALT-002', 'CX', 0.00, 0.00, 0.00, 1, 1, 1, 5, NULL),
 (43, 'Tora de Pinus Taeda S1 2600mm', '752235902497', 'Tora de Pinus Taeda S1 2600mm', 'TON', 5000.00, 280.00, 0.00, 'Toras', 'S1', 'Taeda', 'Bruto', 'Materia-Prima', '', 1.00, 0.00, 0.00, '', 'MST', 1.00, 1.00, 2600.00, 0, 0, 0, 0, NULL),
 (44, 'Tora de Pinus Taeda  S2 2600mm', '086121636640', 'Tora de Pinus S2 2600mm', 'TON', 5000.00, 500.00, 0.00, 'Toras', 'S2', 'Taeda', 'Bruto', 'Materia-Prima', '', 1.00, 0.00, 0.00, '', '', 1.00, 1.00, 2600.00, 0, 0, 0, 0, NULL),
-(45, 'Palete PBR 900x 1000 x 140', '997514262371', 'Palete PBR 900x 1000 x 140', 'PC', 1000.00, 2600.00, 0.00, 'Palete', 'Pinus', 'Standard', 'Acabado', 'PBR', '100', 30.00, 0.00, 0.00, '', 'M3', 140.00, 1000.00, 900.00, 0, 0, 0, 0, NULL),
-(46, 'Bloco Pinus 100x100x100', '191494622171', 'Bloco Pinus 100x100x100', 'PC', 15.00, 400.00, 0.00, 'Blocos', 'A', 'Standard', 'Aplainado', 'Tabique', '', 15.00, 0.00, 0.00, '', 'M3', 100.00, 100.00, 100.00, 0, 0, 0, 0, NULL),
-(47, 'Pregos anelados 17x27', '804600637540', 'Pregos anelados 17x27', 'KG', 5000.00, 11670.00, 0.00, 'Pregos', 'Metais', 'Standard', '', 'Materia-Prima', '', 0.00, 0.00, 0.00, '', '', 0.00, 0.00, 0.00, 0, 0, 0, 0, NULL);
+(45, 'Palete PBR 900x 1000 x 140', '997514262371', 'Palete PBR 900x 1000 x 140', 'PC', 1000.00, 4300.00, 0.00, 'Palete', 'Pinus', 'Standard', 'Acabado', 'PBR', '100', 30.00, 0.00, 0.00, '', 'M3', 140.00, 1000.00, 900.00, 0, 0, 0, 0, NULL),
+(46, 'Bloco Pinus 100x100x100', '191494622171', 'Bloco Pinus 100x100x100', 'PC', 15.00, 400.00, 1800.00, 'Blocos', 'A', 'Standard', 'Aplainado', 'Tabique', '', 15.00, 0.00, 0.00, '', 'M3', 100.00, 100.00, 100.00, 0, 0, 0, 0, NULL),
+(47, 'Pregos anelados 17x27', '804600637540', 'Pregos anelados 17x27', 'KG', 5000.00, 11670.00, 50.00, 'Pregos', 'Metais', 'Standard', '', 'Componentes', '', 0.00, 0.00, 0.00, '', '', 0.00, 0.00, 0.00, 0, 0, 0, 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -1613,6 +1695,13 @@ ALTER TABLE `modelos_lookup`
   ADD UNIQUE KEY `nome` (`nome`);
 
 --
+-- Índices de tabela `motivos_parada`
+--
+ALTER TABLE `motivos_parada`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `codigo` (`codigo`);
+
+--
 -- Índices de tabela `movimentacoes_estoque`
 --
 ALTER TABLE `movimentacoes_estoque`
@@ -1635,6 +1724,15 @@ ALTER TABLE `ordens_producao`
   ADD UNIQUE KEY `numero_op` (`numero_op`),
   ADD KEY `fk_op_produto` (`produto_id`),
   ADD KEY `fk_op_maquina` (`maquina_id`);
+
+--
+-- Índices de tabela `paradas_maquina`
+--
+ALTER TABLE `paradas_maquina`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `maquina_id` (`maquina_id`),
+  ADD KEY `motivo_id` (`motivo_id`),
+  ADD KEY `operador_id` (`operador_id`);
 
 --
 -- Índices de tabela `pedidos_venda_lookup`
@@ -1672,31 +1770,31 @@ ALTER TABLE `unidades_medida_lookup`
 -- AUTO_INCREMENT de tabela `acabamentos_lookup`
 --
 ALTER TABLE `acabamentos_lookup`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
 
 --
 -- AUTO_INCREMENT de tabela `apontamentos_producao`
 --
 ALTER TABLE `apontamentos_producao`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=162;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=166;
 
 --
 -- AUTO_INCREMENT de tabela `consumo_producao`
 --
 ALTER TABLE `consumo_producao`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
 -- AUTO_INCREMENT de tabela `empenho_materiais`
 --
 ALTER TABLE `empenho_materiais`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=89;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
 
 --
 -- AUTO_INCREMENT de tabela `familias_lookup`
 --
 ALTER TABLE `familias_lookup`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
 
 --
 -- AUTO_INCREMENT de tabela `fornecedores_clientes_lookup`
@@ -1708,7 +1806,7 @@ ALTER TABLE `fornecedores_clientes_lookup`
 -- AUTO_INCREMENT de tabela `grupos_lookup`
 --
 ALTER TABLE `grupos_lookup`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=97;
 
 --
 -- AUTO_INCREMENT de tabela `lista_materiais`
@@ -1720,7 +1818,7 @@ ALTER TABLE `lista_materiais`
 -- AUTO_INCREMENT de tabela `localizacoes_lookup`
 --
 ALTER TABLE `localizacoes_lookup`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT de tabela `maquinas`
@@ -1738,13 +1836,19 @@ ALTER TABLE `materiais_insumos_entrada`
 -- AUTO_INCREMENT de tabela `modelos_lookup`
 --
 ALTER TABLE `modelos_lookup`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
+
+--
+-- AUTO_INCREMENT de tabela `motivos_parada`
+--
+ALTER TABLE `motivos_parada`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT de tabela `movimentacoes_estoque`
 --
 ALTER TABLE `movimentacoes_estoque`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=516;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=526;
 
 --
 -- AUTO_INCREMENT de tabela `operadores`
@@ -1756,13 +1860,19 @@ ALTER TABLE `operadores`
 -- AUTO_INCREMENT de tabela `ordens_producao`
 --
 ALTER TABLE `ordens_producao`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=64;
+
+--
+-- AUTO_INCREMENT de tabela `paradas_maquina`
+--
+ALTER TABLE `paradas_maquina`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT de tabela `pedidos_venda_lookup`
 --
 ALTER TABLE `pedidos_venda_lookup`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=225;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=226;
 
 --
 -- AUTO_INCREMENT de tabela `produtos`
@@ -1774,13 +1884,13 @@ ALTER TABLE `produtos`
 -- AUTO_INCREMENT de tabela `subgrupos_lookup`
 --
 ALTER TABLE `subgrupos_lookup`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=91;
 
 --
 -- AUTO_INCREMENT de tabela `unidades_medida_lookup`
 --
 ALTER TABLE `unidades_medida_lookup`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
 
 --
 -- Restrições para tabelas despejadas
@@ -1837,6 +1947,14 @@ ALTER TABLE `movimentacoes_estoque`
 ALTER TABLE `ordens_producao`
   ADD CONSTRAINT `fk_op_maquina` FOREIGN KEY (`maquina_id`) REFERENCES `maquinas` (`id`),
   ADD CONSTRAINT `fk_op_produto` FOREIGN KEY (`produto_id`) REFERENCES `produtos` (`id`);
+
+--
+-- Restrições para tabelas `paradas_maquina`
+--
+ALTER TABLE `paradas_maquina`
+  ADD CONSTRAINT `paradas_maquina_ibfk_1` FOREIGN KEY (`maquina_id`) REFERENCES `maquinas` (`id`),
+  ADD CONSTRAINT `paradas_maquina_ibfk_2` FOREIGN KEY (`motivo_id`) REFERENCES `motivos_parada` (`id`),
+  ADD CONSTRAINT `paradas_maquina_ibfk_3` FOREIGN KEY (`operador_id`) REFERENCES `operadores` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
