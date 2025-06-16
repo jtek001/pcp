@@ -21,21 +21,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 // Inserir na tabela de consumo
                 $sql_consumo = "INSERT INTO consumo_producao (ordem_producao_id, produto_material_id, quantidade_consumida, data_consumo, responsavel_id, observacoes) VALUES (?, ?, ?, ?, ?, ?)";
-                $obs_consumo = "Consumo de matéria-prima direto para a OP.";
+                $obs_consumo = "Consumo de insumo direto para a OP.";
                 $conn->execute_query($sql_consumo, [$op_id_post, $insumo_id, $quantidade_consumida, $data_consumo, $operador_id, $obs_consumo]);
 
                 // Registrar a SAÍDA no estoque
                 $sql_movimentacao = "INSERT INTO movimentacoes_estoque (produto_id, tipo_movimentacao, quantidade, origem_destino, observacoes) VALUES (?, 'saida', ?, ?, ?)";
-                $obs_mov = "Consumo de Matéria-Prima para OP";
+                $obs_mov = "Consumo de Insumo para OP";
                 $conn->execute_query($sql_movimentacao, [$insumo_id, $quantidade_consumida, 'Produção', $obs_mov]);
 
                 // Atualizar o estoque_atual do insumo
-                // CORREÇÃO: A ordem dos parâmetros foi corrigida.
                 $sql_update_estoque = "UPDATE produtos SET estoque_atual = GREATEST(0, estoque_atual - ?) WHERE id = ?";
                 $conn->execute_query($sql_update_estoque, [$quantidade_consumida, $insumo_id]);
 
                 $conn->commit();
-                $_SESSION['message'] = "Consumo de matéria-prima registrado com sucesso!";
+                $_SESSION['message'] = "Consumo de insumo registrado com sucesso!";
                 $_SESSION['message_type'] = "success";
 
             } catch (Exception $e) {
@@ -56,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $consumo_data = $conn->execute_query($sql_get_consumo, [$consumo_id])->fetch_assoc();
 
                 if (!$consumo_data) {
-                    throw new Exception("Registro de consumo de matéria-prima não encontrado.");
+                    throw new Exception("Registro de consumo de insumo não encontrado.");
                 }
 
                 $sql_delete_consumo = "UPDATE consumo_producao SET deleted_at = NOW() WHERE id = ?";
@@ -66,20 +65,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $conn->execute_query($sql_return_stock, [$consumo_data['quantidade_consumida'], $consumo_data['produto_material_id']]);
 
                 $sql_mov_reversal = "INSERT INTO movimentacoes_estoque (produto_id, tipo_movimentacao, quantidade, origem_destino, observacoes) VALUES (?, 'entrada', ?, ?, ?)";
-                $obs_mov_reversal = "Estorno do Consumo de Matéria-Prima ID: " . $consumo_id;
-                $conn->execute_query($sql_mov_reversal, [$consumo_data['produto_material_id'], $consumo_data['quantidade_consumida'], 'Estorno Matéria-Prima', $obs_mov_reversal]);
+                $obs_mov_reversal = "Estorno do Consumo de Insumo ID: " . $consumo_id;
+                $conn->execute_query($sql_mov_reversal, [$consumo_data['produto_material_id'], $consumo_data['quantidade_consumida'], 'Estorno Insumo', $obs_mov_reversal]);
 
                 $conn->commit();
-                $_SESSION['message'] = "Consumo de matéria-prima estornado com sucesso! O estoque foi atualizado.";
+                $_SESSION['message'] = "Consumo de insumo estornado com sucesso! O estoque foi atualizado.";
                 $_SESSION['message_type'] = "success";
 
             } catch (Exception $e) {
                 $conn->rollback();
-                $_SESSION['message'] = "Erro ao estornar matéria-prima: " . $e->getMessage();
+                $_SESSION['message'] = "Erro ao estornar insumo: " . $e->getMessage();
                 $_SESSION['message_type'] = "error";
             }
         } else {
-            $_SESSION['message'] = "ID de consumo de matéria-prima inválido para estorno.";
+            $_SESSION['message'] = "ID de consumo de insumo inválido para estorno.";
             $_SESSION['message_type'] = "warning";
         }
     }
@@ -131,14 +130,14 @@ require_once __DIR__ . '/../../includes/header.php';
         <input type="hidden" name="action" value="consumir_insumo">
         
         <div class="form-group full-width">
-            <label for="insumo_search">Buscar Matéria-Prima (Nome ou Código):</label>
-            <input type="text" id="insumo_search" placeholder="Digite o nome ou código e saia do campo">
+            <label for="insumo_search">Buscar Matéria-Prima / Componente (Código):</label>
+            <input type="text" id="insumo_search" placeholder="Digite o código do insumo e saia do campo">
             <input type="hidden" name="insumo_id" id="insumo_id" required>
         </div>
 
         <div id="insumo-details" class="full-width" style="display: none;">
             <div class="alert alert-info">
-                <p><strong>Matéria-Prima Selecionada:</strong> <span id="insumo-nome"></span></p>
+                <p><strong>Insumo Selecionado:</strong> <span id="insumo-nome"></span></p>
                 <p><strong>Estoque Atual:</strong> <span id="insumo-estoque"></span></p>
             </div>
         </div>
@@ -162,20 +161,20 @@ require_once __DIR__ . '/../../includes/header.php';
         </div>
         
         <div class="full-width" style="text-align: center; grid-column: 1 / -1;">
-             <button type="submit" class="button submit" style="width: auto; min-width: 200px; justify-self: center;">Registrar Consumo de Matéria-Prima</button>
+             <button type="submit" class="button submit" style="width: auto; min-width: 200px; justify-self: center;">Registrar Consumo de Insumo</button>
         </div>
     </form>
 
     <div class="card mt-4">
         <div class="card-header">
-            <h3>Matérias-Primas Consumidas Nesta OP</h3>
+            <h3>Insumos Consumidos Nesta OP</h3>
         </div>
         <div class="card-body">
             <table>
                 <thead>
                     <tr>
                         <th>Data Consumo</th>
-                        <th>Matéria-Prima</th>
+                        <th>Insumo</th>
                         <th>Qtd. Consumida</th>
                         <th>Responsável</th>
                         <th>Ações</th>
@@ -196,7 +195,7 @@ require_once __DIR__ . '/../../includes/header.php';
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="5" style="text-align: center;">Nenhuma matéria-prima consumida diretamente para esta OP ainda.</td>
+                            <td colspan="5" style="text-align: center;">Nenhum insumo consumido diretamente para esta OP ainda.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -226,7 +225,6 @@ document.addEventListener('DOMContentLoaded', function() {
         quantidadeConsumidaInput.max = '';
     }
 
-    // ALTERAÇÃO: Evento 'blur' para acionar a busca ao sair do campo
     insumoSearchInput.addEventListener('blur', function() {
         const searchTerm = this.value.trim();
         if (searchTerm === '') {
@@ -245,10 +243,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 insumoEstoqueSpan.textContent = insumo.estoque_atual;
                 quantidadeConsumidaInput.max = insumo.estoque_atual;
                 insumoDetailsDiv.style.display = 'block';
-                insumoSearchInput.value = insumo.nome;
+                // Não limpa o campo de busca para manter o código visível
             })
             .catch(error => {
-                alert(error.error || 'Erro ao buscar matéria-prima.');
+                alert(error.error || 'Erro ao buscar insumo.');
                 resetInsumoDetails();
                 this.value = '';
                 this.focus();
