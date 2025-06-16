@@ -1,7 +1,16 @@
 <?php
 // modules/operadores/excluir.php
 // Esta página é responsável por "excluir" (soft delete) um operador do banco de dados e redirecionar.
+session_start();
+require_once __DIR__ . '/../../config/database.php';
 
+// --- OBSERVAÇÃO DE SEGURANÇA ---
+if (!isset($_SESSION['user_cargo']) || $_SESSION['user_cargo'] !== 'admin') {
+    $_SESSION['message'] = "Acesso negado.";
+    $_SESSION['message_type'] = "error";
+    header("Location: " . BASE_URL . "/public/index.php");
+    exit();
+}
 // Habilita a exibição de todos os erros PHP para depuração (REMOVER EM PRODUÇÃO)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
