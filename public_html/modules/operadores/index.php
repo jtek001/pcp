@@ -1,161 +1,65 @@
 <?php
-// modules/operadores/index.php
-// Esta página lista todos os operadores cadastrados.
-
-// Inicia a sessão para usar variáveis de sessão
 session_start();
-
-// Habilita a exibição de todos os erros PHP para depuração (REMOVER EM PRODUÇÃO)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Inclui os arquivos de configuração e o cabeçalho
 require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../includes/header.php';
 
-// Conecta ao banco de dados
+// --- OBSERVAÇÃO DE SEGURANÇA ---
+// Apenas usuários com cargo 'admin' podem acessar esta página.
+if (!isset($_SESSION['user_cargo']) || $_SESSION['user_cargo'] !== 'admin') {
+    $_SESSION['message'] = "Acesso negado. Você não tem permissão para acessar esta funcionalidade.";
+    $_SESSION['message_type'] = "error";
+    header("Location: " . BASE_URL . "/public/index.php");
+    exit();
+}
+
+require_once __DIR__ . '/../../includes/header.php';
 $conn = connectDB();
 
-// Variáveis para mensagens de sucesso/erro (podem vir de redirecionamentos)
-$message = '';
-$message_type = '';
-
-// Recupera mensagens da sessão se existirem (após sucesso de adicionar/editar/excluir)
-if (isset($_SESSION['message'])) {
-    $message = $_SESSION['message'];
-    $message_type = $_SESSION['message_type'];
-    unset($_SESSION['message']);
-    unset($_SESSION['message_type']);
-} elseif (isset($_GET['message'])) { // Verifica também se a mensagem veio via URL
-    $message = sanitizeInput($_GET['message']);
-    $message_type = sanitizeInput($_GET['type'] ?? 'info');
-}
-
-// Lógica para pesquisa e filtro
-$search_term = sanitizeInput($_GET['search_term'] ?? '');
-$filter_field = sanitizeInput($_GET['filter_field'] ?? 'nome'); 
-
-// Mapeamento dos campos de exibição para os nomes das colunas no DB
-$filter_options = [
-    'nome' => 'Nome',
-    'matricula' => 'Matrícula',
-    'username' => 'Usuário',
-    'cargo' => 'Cargo' // Já usa 'cargo'
-];
-
-// --- Lógica de Paginação ---
+// Lógica de Paginação
 $items_per_page = 10;
 $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-if ($current_page < 1) $current_page = 1;
-
 $offset = ($current_page - 1) * $items_per_page;
 
-// Constrói a cláusula WHERE para contagem e busca (sem LIMIT ainda)
-$where_clause = " WHERE deleted_at IS NULL"; 
-$params_count_and_fetch = [];
-
-if (!empty($search_term) && array_key_exists($filter_field, $filter_options)) {
-    $where_clause .= " AND " . $filter_field . " LIKE ?";
-    $params_count_and_fetch[] = '%' . $search_term . '%';
-}
-
-// 1. Contar o total de Operadores (para calcular o número de páginas)
-$sql_count = "SELECT COUNT(id) AS total_items FROM operadores" . $where_clause;
-try {
-    $result_count = $conn->execute_query($sql_count, $params_count_and_fetch);
-    $total_items = 0;
-    if ($result_count) {
-        $row_count = $result_count->fetch_assoc();
-        $total_items = $row_count['total_items'];
-        $result_count->free();
-    }
-} catch (mysqli_sql_exception $e) {
-    error_log("Erro ao contar operadores: " . $e->getMessage());
-    $total_items = 0;
-}
-
+// Contar o total de itens
+$total_items = $conn->query("SELECT COUNT(*) AS total FROM operadores WHERE deleted_at IS NULL")->fetch_assoc()['total'];
 $total_pages = ceil($total_items / $items_per_page);
-if ($current_page > $total_pages && $total_pages > 0) {
-    $current_page = $total_pages;
-    $offset = ($current_page - 1) * $items_per_page;
-}
 
-
-// 2. Buscar os Operadores para a página atual
-$operadores_list = [];
-// Seleciona as colunas, incluindo 'cargo'
-$sql_fetch = "SELECT id, nome, matricula, username, cargo, ativo FROM operadores" . $where_clause . " ORDER BY nome ASC LIMIT ? OFFSET ?";
-$params_fetch = array_merge($params_count_and_fetch, [$items_per_page, $offset]);
-
-try {
-    $stmt_fetch = $conn->execute_query($sql_fetch, $params_fetch);
-    if ($stmt_fetch) {
-        while ($row = $stmt_fetch->fetch_assoc()) {
-            $operadores_list[] = $row;
-        }
-        $stmt_fetch->free();
-    } else {
-        $message = "Erro ao carregar operadores: " . $conn->error;
-        $message_type = "error";
-        error_log("Erro ao carregar operadores para exibição: " . $conn->error);
-    }
-} catch (mysqli_sql_exception $e) {
-    $message = "Erro ao carregar operadores (SQL): " . $e->getMessage();
-    $message_type = "error";
-    error_log("Erro fatal ao carregar operadores para exibição: " . $e->getMessage());
-}
+// Buscar os itens para a página atual
+$sql = "SELECT * FROM operadores WHERE deleted_at IS NULL ORDER BY nome ASC LIMIT ? OFFSET ?";
+$operadores = $conn->execute_query($sql, [$items_per_page, $offset])->fetch_all(MYSQLI_ASSOC);
 ?>
 
-<h2>Gerenciamento de Operadores</h2>
-
-<?php if ($message): ?>
-    <div class="message <?php echo $message_type; ?>">
-        <?php echo $message; ?>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-users-cog"></i> Gestão de Operadores</h2>
+        <a href="adicionar.php" class="button add"><i class="fas fa-plus"></i> Adicionar Operador</a>
     </div>
-<?php endif; ?>
 
-<div class="actions-container">
-    <a href="adicionar.php" class="button add">Adicionar Novo Operador</a>
-</div>
+    <?php if (isset($_SESSION['message'])): ?>
+    <div class="message <?php echo htmlspecialchars($_SESSION['message_type']); ?>">
+        <?php echo $_SESSION['message']; ?>
+    </div>
+    <?php unset($_SESSION['message']); unset($_SESSION['message_type']); ?>
+    <?php endif; ?>
 
-<div class="search-container">
-    <form action="index.php" method="GET" class="search-form-inline">
-        <input type="hidden" name="module" value="operadores">
-        <input type="text" name="search_term" placeholder="Termo de pesquisa..." value="<?php echo htmlspecialchars($search_term); ?>">
-        <select name="filter_field">
-            <?php foreach ($filter_options as $field_value => $field_label): ?>
-                <option value="<?php echo htmlspecialchars($field_value); ?>" <?php echo ($filter_field === $field_value) ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($field_label); ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-        <button type="submit" class="button">Pesquisar</button>
-        <?php if (!empty($search_term)): ?>
-            <a href="index.php?module=operadores" class="button button-clear">Limpar Pesquisa</a>
-        <?php endif; ?>
-    </form>
-</div>
-
-<?php if (!empty($operadores_list)): ?>
     <table>
         <thead>
             <tr>
                 <th>Nome</th>
                 <th>Matrícula</th>
                 <th>Usuário</th>
-                <th>Cargo</th> <!-- Coluna Cargo já está aqui -->
-                <th>Ativo</th>
+                <th>Cargo</th>
+                <th>Status</th>
                 <th>Ações</th>
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($operadores_list as $operador): ?>
+            <?php foreach ($operadores as $operador): ?>
                 <tr>
                     <td><?php echo htmlspecialchars($operador['nome']); ?></td>
                     <td><?php echo htmlspecialchars($operador['matricula']); ?></td>
                     <td><?php echo htmlspecialchars($operador['username']); ?></td>
-                    <td><?php echo htmlspecialchars($operador['cargo']); ?></td> <!-- Exibe o dado de Cargo -->
-                    <td><?php echo $operador['ativo'] ? 'Sim' : 'Não'; ?></td>
+                    <td><?php echo htmlspecialchars($operador['cargo']); ?></td>
+                    <td><?php echo $operador['ativo'] ? 'Ativo' : 'Inativo'; ?></td>
                     <td>
                         <a href="editar.php?id=<?php echo $operador['id']; ?>" class="button edit small">Editar</a>
                         <button class="button delete small" onclick="showDeleteModal('operadores', <?php echo $operador['id']; ?>)">Excluir</button>
@@ -166,41 +70,13 @@ try {
     </table>
 
     <div class="pagination">
-        <?php
-        // Parâmetros base para os links de paginação (mantém pesquisa e filtro)
-        $pagination_base_query = http_build_query(array_filter([
-            'module' => 'operadores',
-            'search_term' => $search_term,
-            'filter_field' => $filter_field
-        ]));
-
-        if ($total_pages > 1) {
-            // Link para a página anterior
-            if ($current_page > 1) {
-                echo '<a href="?' . $pagination_base_query . '&page=' . ($current_page - 1) . '" class="page-link">&laquo; Anterior</a>';
-            }
-
-            // Links para as páginas
-            for ($i = 1; $i <= $total_pages; $i++) {
-                $active_class = ($i == $current_page) ? 'active' : '';
-                echo '<a href="?' . $pagination_base_query . '&page=' . $i . '" class="page-link ' . $active_class . '">' . $i . '</a>';
-            }
-
-            // Link para a próxima página
-            if ($current_page < $total_pages) {
-                echo '<a href="?' . $pagination_base_query . '&page=' . ($current_page + 1) . '" class="page-link">Próxima &raquo;</a>';
-            }
-        }
-        ?>
+        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+            <a href="?page=<?php echo $i; ?>" class="page-link <?php echo ($i == $current_page) ? 'active' : ''; ?>"><?php echo $i; ?></a>
+        <?php endfor; ?>
     </div>
-
-<?php else: ?>
-    <tr><td colspan="6" style="text-align: center;">Nenhum operador cadastrado ou encontrado com a pesquisa. <a href="adicionar.php">Adicione um novo operador</a>.</td></tr>
-<?php endif; ?>
+</div>
 
 <?php
-// Fecha a conexão com o banco de dados
-$conn->close();
-// Inclui o rodapé padrão
 require_once __DIR__ . '/../../includes/footer.php';
+$conn->close();
 ?>
