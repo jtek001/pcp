@@ -5,24 +5,45 @@ require_once __DIR__ . '/../../includes/header.php';
 
 $conn = connectDB();
 
-// --- Lógica para buscar dados para os filtros ---
-$maquinas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL ORDER BY nome")->fetch_all(MYSQLI_ASSOC);
-$produtos = $conn->query("SELECT id, nome, codigo FROM produtos WHERE deleted_at IS NULL ORDER BY nome")->fetch_all(MYSQLI_ASSOC);
+// --- Define as datas padrão para o formulário ---
+$data_inicial_form = $_GET['data_inicial'] ?? date('Y-m-01\T00:00');
+$data_final_form = $_GET['data_final'] ?? date('Y-m-t\T23:59');
 
-// --- Lógica de Filtragem e Busca de Dados ---
+// --- Lógica para buscar dados para os filtros dinâmicos ---
+$maquinas_disponiveis = [];
+$produtos_disponiveis = [];
+
+if (!empty($data_inicial_form) && !empty($data_final_form)) {
+    $sql_maquinas = "SELECT DISTINCT m.id, m.nome 
+                     FROM maquinas m
+                     JOIN apontamentos_producao ap ON m.id = ap.maquina_id
+                     WHERE ap.data_apontamento BETWEEN ? AND ?
+                     ORDER BY m.nome";
+    $maquinas_disponiveis = $conn->execute_query($sql_maquinas, [$data_inicial_form, $data_final_form])->fetch_all(MYSQLI_ASSOC);
+
+    $sql_produtos = "SELECT DISTINCT p.id, p.nome, p.codigo
+                     FROM produtos p
+                     JOIN ordens_producao op ON p.id = op.produto_id
+                     JOIN apontamentos_producao ap ON op.id = ap.ordem_producao_id
+                     WHERE ap.data_apontamento BETWEEN ? AND ?
+                     ORDER BY p.nome";
+    $produtos_disponiveis = $conn->execute_query($sql_produtos, [$data_inicial_form, $data_final_form])->fetch_all(MYSQLI_ASSOC);
+}
+
+
+// --- Lógica de Filtragem e Busca de Dados do Relatório ---
 $dados_relatorio = [];
-$dados_grafico = [];
+$dados_grafico_labels = [];
+$dados_grafico_pc = [];
+$dados_grafico_m3 = [];
 $filtros_aplicados = [];
 $error_message = '';
-$unidade_selecionada = $_GET['unidade_medida'] ?? 'M3';
-$unidade_grafico = $unidade_selecionada;
 
 if (isset($_GET['filtrar'])) {
     try {
         $params = [];
         $types = '';
 
-        // ALTERAÇÃO: A cláusula WHERE agora inclui apontamentos deletados que foram consumidos.
         $sql_base = "SELECT 
                         DATE(ap.data_apontamento) as dia,
                         m.nome as maquina_nome,
@@ -30,7 +51,7 @@ if (isset($_GET['filtrar'])) {
                         p.codigo as produto_codigo,
                         p.unidade_medida,
                         SUM(CASE WHEN UPPER(p.unidade_medida) = 'PC' THEN ap.quantidade_produzida ELSE 0 END) AS total_quantidade_pc,
-                        SUM(CASE WHEN UPPER(p.unidade_medida) = 'M3' OR UPPER(p.unidade_medida2) = 'M3' THEN (ap.quantidade_produzida * p.espessura * p.largura * p.comprimento) / 1000000000 ELSE 0 END) AS total_volume_m3
+                        SUM(CASE WHEN UPPER(p.unidade_medida2) = 'M3' THEN calcularVolume(ap.quantidade_produzida, p.espessura, p.largura, p.comprimento) ELSE 0 END) AS total_volume_m3
                      FROM apontamentos_producao ap
                      JOIN ordens_producao op ON ap.ordem_producao_id = op.id
                      JOIN produtos p ON op.produto_id = p.id
@@ -41,39 +62,30 @@ if (isset($_GET['filtrar'])) {
                             ))";
 
         if (!empty($_GET['data_inicial'])) {
-            $sql_base .= " AND DATE(ap.data_apontamento) >= ?";
+            $sql_base .= " AND ap.data_apontamento >= ?";
             $params[] = $_GET['data_inicial'];
             $types .= 's';
-            $filtros_aplicados['Data Inicial'] = date('d/m/Y', strtotime($_GET['data_inicial']));
+            $filtros_aplicados['Data Inicial'] = date('d/m/Y H:i', strtotime($_GET['data_inicial']));
         }
         if (!empty($_GET['data_final'])) {
-            $sql_base .= " AND DATE(ap.data_apontamento) <= ?";
+            $sql_base .= " AND ap.data_apontamento <= ?";
             $params[] = $_GET['data_final'];
             $types .= 's';
-            $filtros_aplicados['Data Final'] = date('d/m/Y', strtotime($_GET['data_final']));
+            $filtros_aplicados['Data Final'] = date('d/m/Y H:i', strtotime($_GET['data_final']));
         }
         if (!empty($_GET['maquina_id'])) {
             $sql_base .= " AND ap.maquina_id = ?";
             $params[] = $_GET['maquina_id'];
             $types .= 'i';
-            $maq_res = $conn->execute_query("SELECT nome FROM maquinas WHERE id = ?", [$_GET['maquina_id']]);
-            if ($maq_row = $maq_res->fetch_assoc()) $filtros_aplicados['Máquina'] = $maq_row['nome'];
+            $filtros_aplicados['Máquina'] = $conn->execute_query("SELECT nome FROM maquinas WHERE id = ?", [$_GET['maquina_id']])->fetch_assoc()['nome'];
         }
         if (!empty($_GET['produto_id'])) {
             $sql_base .= " AND op.produto_id = ?";
             $params[] = $_GET['produto_id'];
             $types .= 'i';
-            $prod_res = $conn->execute_query("SELECT nome FROM produtos WHERE id = ?", [$_GET['produto_id']]);
-            if ($prod_row = $prod_res->fetch_assoc()) $filtros_aplicados['Produto'] = $prod_row['nome'];
+            $filtros_aplicados['Produto'] = $conn->execute_query("SELECT nome FROM produtos WHERE id = ?", [$_GET['produto_id']])->fetch_assoc()['nome'];
         }
         
-        if (!empty($unidade_selecionada)) {
-            $sql_base .= " AND UPPER(p.unidade_medida) = ?";
-            $params[] = strtoupper($unidade_selecionada);
-            $types .= 's';
-            $filtros_aplicados['Unidade'] = $unidade_selecionada;
-        }
-
         $sql_base .= " GROUP BY DATE(ap.data_apontamento), m.nome, p.nome, p.codigo, p.unidade_medida ORDER BY dia ASC, maquina_nome, produto_nome";
 
         $stmt = $conn->prepare($sql_base);
@@ -85,17 +97,21 @@ if (isset($_GET['filtrar'])) {
         $dados_relatorio = $result->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
-        // Agrega dados para o gráfico (somatório diário)
+        // Agrega dados diários para o gráfico
         $grafico_agregado = [];
         foreach ($dados_relatorio as $dado) {
-            $dia = date('d/m/Y', strtotime($dado['dia']));
-            if (!isset($grafico_agregado[$dia])) {
-                $grafico_agregado[$dia] = 0;
+            $dia_key = date('Y-m-d', strtotime($dado['dia']));
+            if (!isset($grafico_agregado[$dia_key])) {
+                $grafico_agregado[$dia_key] = ['PC' => 0, 'M3' => 0];
             }
-            $grafico_agregado[$dia] += ($unidade_grafico === 'M3') ? $dado['total_volume_m3'] : $dado['total_quantidade_pc'];
+            $grafico_agregado[$dia_key]['PC'] += $dado['total_quantidade_pc'];
+            $grafico_agregado[$dia_key]['M3'] += $dado['total_volume_m3'];
         }
-        $dados_grafico['labels'] = array_keys($grafico_agregado);
-        $dados_grafico['data'] = array_values($grafico_agregado);
+        ksort($grafico_agregado);
+
+        $dados_grafico_labels = array_map(fn($data) => date('d/m', strtotime($data)), array_keys($grafico_agregado));
+        $dados_grafico_pc = array_column($grafico_agregado, 'PC');
+        $dados_grafico_m3 = array_column($grafico_agregado, 'M3');
 
     } catch (Exception $e) {
         $error_message = "Ocorreu um erro ao gerar o relatório: " . $e->getMessage();
@@ -111,37 +127,30 @@ if (isset($_GET['filtrar'])) {
         <div class="card-body">
             <form action="relatorio_producao_periodo.php" method="GET">
                 <div class="row">
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-6 mb-3">
                         <label for="data_inicial" class="form-label">Data Inicial</label>
-                        <input type="date" class="form-control" name="data_inicial" value="<?php echo htmlspecialchars($_GET['data_inicial'] ?? ''); ?>">
+                        <input type="datetime-local" class="form-control" name="data_inicial" value="<?php echo htmlspecialchars($data_inicial_form); ?>">
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-6 mb-3">
                         <label for="data_final" class="form-label">Data Final</label>
-                        <input type="date" class="form-control" name="data_final" value="<?php echo htmlspecialchars($_GET['data_final'] ?? ''); ?>">
+                        <input type="datetime-local" class="form-control" name="data_final" value="<?php echo htmlspecialchars($data_final_form); ?>">
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-6 mb-3">
                         <label for="maquina_id" class="form-label">Máquina</label>
                         <select name="maquina_id" class="form-select">
                             <option value="">Todas</option>
-                            <?php foreach($maquinas as $maquina): ?>
+                            <?php foreach($maquinas_disponiveis as $maquina): ?>
                                 <option value="<?php echo $maquina['id']; ?>" <?php echo (($_GET['maquina_id'] ?? '') == $maquina['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($maquina['nome']); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-6 mb-3">
                         <label for="produto_id" class="form-label">Produto</label>
                         <select name="produto_id" class="form-select">
                             <option value="">Todos</option>
-                             <?php foreach($produtos as $produto): ?>
+                             <?php foreach($produtos_disponiveis as $produto): ?>
                                 <option value="<?php echo $produto['id']; ?>" <?php echo (($_GET['produto_id'] ?? '') == $produto['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($produto['nome'] . ' (' . $produto['codigo'] . ')'); ?></option>
                             <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <label for="unidade_medida" class="form-label">Filtrar por Unidade:</label>
-                         <select name="unidade_medida" id="unidade_medida" class="form-select">
-                            <option value="M3" <?php echo ($unidade_selecionada == 'M3') ? 'selected' : ''; ?>>Volume (M³)</option>
-                            <option value="PC" <?php echo ($unidade_selecionada == 'PC') ? 'selected' : ''; ?>>Quantidade (PC)</option>
                         </select>
                     </div>
                 </div>
@@ -204,6 +213,10 @@ if (isset($_GET['filtrar'])) {
                     </table>
                     
                     <h4 class="mt-4">Gráfico de Produção Diária</h4>
+                    <div class="text-center mb-2">
+                        <button id="btnVerPC" class="button small">Ver em Qtde (PC)</button>
+                        <button id="btnVerM3" class="button small active">Ver em Volume (M³)</button>
+                    </div>
                     <canvas id="graficoProducao" style="max-height: 400px;"></canvas>
 
                 <?php else: ?>
@@ -221,38 +234,61 @@ if (isset($_GET['filtrar'])) {
 document.addEventListener('DOMContentLoaded', function () {
     const ctx = document.getElementById('graficoProducao');
     if (ctx) {
-        const labels = <?php echo json_encode($dados_grafico['labels'] ?? []); ?>;
-        const data = <?php echo json_encode($dados_grafico['data'] ?? []); ?>;
-        const unitLabel = '<?php echo $unidade_grafico === 'M3' ? 'M³' : 'PC'; ?>';
+        const labels = <?php echo json_encode($dados_grafico_labels ?? []); ?>;
+        const dataPC = <?php echo json_encode($dados_grafico_pc ?? []); ?>;
+        const dataM3 = <?php echo json_encode($dados_grafico_m3 ?? []); ?>;
         
-        new Chart(ctx, {
+        const btnPC = document.getElementById('btnVerPC');
+        const btnM3 = document.getElementById('btnVerM3');
+
+        const myChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [{
-                    label: `Produção Diária (${unitLabel})`,
-                    data: data,
+                    label: 'Produção Diária',
+                    data: [], // Iniciado vazio, preenchido pela função updateChart
                     backgroundColor: 'rgba(52, 152, 219, 0.7)',
                     borderColor: 'rgba(52, 152, 219, 1)',
                     borderWidth: 1
                 }]
             },
             options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { callback: value => value.toFixed(2) + ` ${unitLabel}` }
-                    }
-                },
+                scales: { y: { beginAtZero: true } },
                 plugins: {
                     tooltip: {
                         callbacks: {
-                            label: context => ` Total: ${context.parsed.y.toFixed(2)} ${unitLabel}`
+                            label: function(context) {
+                                return `Total: ${context.parsed.y.toFixed(2)}`;
+                            }
                         }
                     }
                 }
             }
         });
+
+        function updateChart(metric) {
+            if (metric === 'PC') {
+                myChart.data.datasets[0].data = dataPC;
+                myChart.data.datasets[0].label = 'Produção Diária (PC)';
+                myChart.options.plugins.tooltip.callbacks.label = context => ` Total: ${context.parsed.y.toFixed(2)} PC`;
+                btnPC.classList.add('active');
+                btnM3.classList.remove('active');
+            } else { // M3
+                myChart.data.datasets[0].data = dataM3;
+                myChart.data.datasets[0].label = 'Produção Diária (M³)';
+                myChart.options.plugins.tooltip.callbacks.label = context => ` Total: ${context.parsed.y.toFixed(2)} M³`;
+                btnM3.classList.add('active');
+                btnPC.classList.remove('active');
+            }
+            myChart.update();
+        }
+
+        btnPC.addEventListener('click', () => updateChart('PC'));
+        btnM3.addEventListener('click', () => updateChart('M3'));
+
+        // Inicia com a visualização padrão
+        updateChart('M3');
     }
 });
 </script>
