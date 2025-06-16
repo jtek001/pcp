@@ -152,7 +152,6 @@ try {
                 <th>OP</th>
                 <th>Qtd. Empenhada</th>
                 <th>Data Empenho</th>
-                <th>Observações</th>
                 <th>Ações</th>
             </tr>
         </thead>
@@ -163,7 +162,6 @@ try {
                     <td><?php echo htmlspecialchars($empenho['ordem_producao_numero']); ?></td>
                     <td><?php echo number_format($empenho['quantidade_empenhada'], 2, ',', '.') . ' ' . htmlspecialchars($empenho['unidade_medida']); ?></td>
                     <td><?php echo date('d/m/Y H:i', strtotime($empenho['data_empenho'])); ?></td>
-                    <td><?php echo htmlspecialchars($empenho['observacoes'] ?? 'N/A'); ?></td>
                     <td>
                         <a href="editar.php?id=<?php echo $empenho['id']; ?>" class="button edit small">Editar</a>
                         <button class="button delete small" onclick="showDeleteModal('empenho_manual', <?php echo $empenho['id']; ?>)">Excluir</button>
