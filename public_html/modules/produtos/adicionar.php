@@ -219,7 +219,7 @@ $post_values = $_POST ?? [];
         <select id="grupo_select" name="grupo" required data-initial-value="<?php echo htmlspecialchars($post_values['grupo'] ?? ''); ?>">
             <option value="">Selecione um Grupo</option>
             <?php
-            // Adiciona a opção digitada anteriormente se houver erro e a lista não contiver
+            // Adiciona a opão digitada anteriormente se houver erro e a lista não contiver
             $current_grupo = $post_values['grupo'] ?? '';
             if (!empty($current_grupo) && !in_array($current_grupo, $grupos)) {
                 echo '<option value="' . htmlspecialchars($current_grupo) . '" selected>' . htmlspecialchars($current_grupo) . '</option>';
@@ -497,7 +497,7 @@ $post_values = $_POST ?? [];
                     }
                 }
                 if (!foundInSelect) {
-                    // Se o valor inicial não está nas opções do select, ativa o input de texto
+                    // Se o valor inicial no está nas opções do select, ativa o input de texto
                     selectElement.style.display = 'none';
                     selectElement.removeAttribute('name');
                     textInputElement.style.display = 'block';
