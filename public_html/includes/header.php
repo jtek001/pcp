@@ -66,13 +66,14 @@ function is_active($modules) {
                         
                         <!-- Menu Cadastros -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle <?php echo is_active(['produtos', 'maquinas', 'bom', 'fornecedores_clientes', 'operadores']); ?>" href="#" id="navbarDropdownCadastros" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle <?php echo is_active(['produtos', 'maquinas', 'bom', 'fornecedores_clientes', 'operadores', 'roteiros']); ?>" href="#" id="navbarDropdownCadastros" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-edit"></i> Cadastros
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownCadastros">
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/produtos/index.php">Produtos</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/maquinas/index.php">Máquinas</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/bom/index.php">Lista de Materiais</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/bom/index.php">Lista de Materiais (BoM)</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/roteiros/index.php">Roteiros de Produção</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/fornecedores_clientes/index.php">Clientes & Fornecedores</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/operadores/index.php">Operadores</a></li>
@@ -103,7 +104,7 @@ function is_active($modules) {
                         <!-- Menu Manutenção -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle <?php echo is_active(['manutencao']); ?>" href="#" id="navbarDropdownManutencao" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-tools"></i> Manutenção
+                                <i class="fas fa-tools"></i> Manutenão
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownManutencao">
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/manutencao/index.php">Controle de Paradas</a></li>
