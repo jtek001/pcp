@@ -6,7 +6,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Define o fuso horário padrão do PHP para Braslia.
+// Define o fuso horrio padrão do PHP para Braslia.
 date_default_timezone_set('America/Sao_Paulo');
 
 // Inclui os arquivos de configuração (para ter acesso à função connectDB e COMPANY_NAME)
@@ -23,18 +23,25 @@ $message_type_from_get = sanitizeInput($_GET['type'] ?? ''); // Tipo da mensagem
 $etiqueta_data = null;
 
 if ($apontamento_id > 0) {
+    // OBSERVAÇÃO: A consulta agora busca as dimensões e chama a função calcularVolume()
     $sql = "SELECT
                 ap.quantidade_produzida,
                 ap.data_apontamento,
                 ap.observacoes,
-                ap.id AS apontamento_id, -- Adiciona o ID do apontamento para o lote
+                ap.id AS apontamento_id,
                 op.numero_op,
                 op.numero_pedido,
                 p.nome AS produto_nome,
                 p.codigo AS produto_codigo,
+                p.unidade_medida2,
                 m.nome AS maquina_nome,
                 o.nome AS operador_nome,
-                o.matricula AS operador_matricula
+                o.matricula AS operador_matricula,
+                CASE 
+                    WHEN UPPER(p.unidade_medida2) = 'M3' 
+                    THEN calcularVolume(ap.quantidade_produzida, p.espessura, p.largura, p.comprimento)
+                    ELSE 0 
+                END AS volume_calculado
             FROM
                 apontamentos_producao ap
             JOIN
@@ -46,7 +53,7 @@ if ($apontamento_id > 0) {
             LEFT JOIN
                 operadores o ON ap.operador_id = o.id
             WHERE
-                ap.id = ? AND ap.deleted_at IS NULL"; // Apenas apontamentos não excluídos
+                ap.id = ? AND ap.deleted_at IS NULL"; 
 
     try {
         $result = $conn->execute_query($sql, [$apontamento_id]);
@@ -114,12 +121,11 @@ if (!$etiqueta_data): ?>
             position: relative; /* Para positioning absoluto de elementos internos */
             overflow: hidden; /* Garante que nada saia do container */
         }
-        /* --- INÍCIO DA ALTERAO: Estilo da Etiqueta (07/06/2025 - IA) --- */
         .header-section {
             display: flex;
             flex-direction: column; /* Empresa e Lote um abaixo do outro */
             align-items: flex-start; /* Alinha tudo à esquerda */
-            margin-bottom: 0.2cm; /* Espao maior após cabeçalho */
+            margin-bottom: 0.2cm; /* Espaço maior após cabeçalho */
         }
         .company-name {
             font-size: 0.8cm; /* Aumenta o tamanho da fonte da empresa */
@@ -147,7 +153,7 @@ if (!$etiqueta_data): ?>
             flex-direction: column;
             align-items: flex-start; /* Alinha detalhes à esquerda */
             flex-grow: 1; /* Permite que esta seção ocupe o espaço restante */
-            justify-content: center; /* Centraliza verticalmente se houver espao */
+            justify-content: center; /* Centraliza verticalmente se houver espaço */
         }
         .detail-row {
             display: flex; /* Mantém label e valor na mesma linha */
@@ -164,25 +170,13 @@ if (!$etiqueta_data): ?>
         }
         .detail-value {
             font-size: 0.5cm;
-            /* flex-grow: 1; Removido para que o valor não ocupe todo o espaço à direita */
-            text-align: left; /* Alinha o valor  esquerda */
+            text-align: left; /* Alinha o valor à esquerda */
             word-break: break-all; /* Quebra palavras muito longas */
         }
-        .obs-section { /* Esta seão será removida do HTML, mas os estilos ficam caso queira re-adicionar no futuro */
-            display: none; /* Oculta a seção de observações */
-            margin-top: 0.3cm;
-            font-size: 0.5cm;
-            word-break: break-word;
-        }
-        .obs-label {
-            font-weight: bold;
-        }
-        /* --- FIM DA ALTERAÃO: Estilo da Etiqueta --- */
-
-        /* Estilos para impresso */
+        
         @page {
-            size: 10cm 10cm; /* Define o tamanho da página de impressão */
-            margin: 0; /* Remove margens da página */
+            size: 10cm 10cm; /* Define o tamanho da pgina de impressão */
+            margin: 0; /* Remove margens da pgina */
         }
         @media print {
             body {
@@ -199,7 +193,6 @@ if (!$etiqueta_data): ?>
                 height: 10cm;
                 padding: 0.5cm;
             }
-            /* Oculta elementos que no devem ser impressos, como botões */
             .no-print {
                 display: none;
             }
@@ -228,24 +221,28 @@ if (!$etiqueta_data): ?>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Qtde:</span>
-                <span class="detail-value"><?php echo number_format($etiqueta_data['quantidade_produzida'], 2, ',', '.'); ?></span>
+                <span class="detail-value">
+                    <?php 
+                    // Exibe a quantidade formatada
+                    echo number_format($etiqueta_data['quantidade_produzida'], 2, ',', '.'); 
+
+                    // OBSERVAÃO: Exibe o volume apenas se for maior que zero
+                    if ($etiqueta_data['volume_calculado'] > 0) {
+                        echo ' <span style="font-style: italic;">(' . number_format($etiqueta_data['volume_calculado'], 2, ',', '.') . ' M³)</span>';
+                    }
+                    ?>
+                </span>
             </div>
             <div class="detail-row">
                 <span class="detail-label">Data:</span>
                 <span class="detail-value"><?php echo date('d/m/Y H:i', strtotime($etiqueta_data['data_apontamento'])); ?></span>
             </div>
         </div>
-
-        <!-- Removido o obs-section completo conforme solicitado -->
-        <!-- <div class="obs-section">
-            <span class="obs-label">Obs:</span>
-            <span><?php echo htmlspecialchars($etiqueta_data['observacoes'] ?? 'N/A'); ?></span>
-        </div> -->
     </div>
     <div class="no-print" style="text-align: center; margin-top: 20px;">
         <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Imprimir Novamente</button>
         <?php if ($op_id_from_get > 0): // Botão para voltar apenas se houver OP ID ?>
-            <a href="<?php echo BASE_URL; ?>/modules/chao_de_fabrica/apontar.php?id=<?php echo htmlspecialchars($op_id_from_get); ?>&message=<?php echo urlencode($message_from_get); ?>&type=<?php echo urlencode($message_type_from_get); ?>" style="padding: 10px 20px; font-size: 16px; cursor: pointer; text-decoration: none; background-color: #007bff; color: white; border-radius: 5px; margin-left: 10px;">Voltar à OP</a>
+            <a href="<?php echo BASE_URL; ?>/modules/chao_de_fabrica/apontar.php?id=<?php echo htmlspecialchars($op_id_from_get); ?>&message=<?php echo urlencode($message_from_get); ?>&type=<?php echo urlencode($message_type_from_get); ?>" style="padding: 10px 20px; font-size: 16px; cursor: pointer; text-decoration: none; background-color: #007bff; color: white; border-radius: 5px; margin-left: 10px;">Voltar  OP</a>
         <?php endif; ?>
     </div>
 </body>
