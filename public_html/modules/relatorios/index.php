@@ -26,7 +26,7 @@ $relatorios_disponiveis = [
     ],
     [
         'titulo' => 'Relatório de Paradas',
-        'descricao' => 'Analisa o tempo total e os principais motivos das paradas de máquina em um período.',
+        'descricao' => 'Analisa o tempo total e os principais motivos das paradas de mquina em um período.',
         'link' => '../manutencao/relatorio_paradas.php', // Link para o relatório no módulo de manutenção
         'icone' => 'fa-tools'
     ],
