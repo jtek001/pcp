@@ -101,17 +101,30 @@ try {
 }
 ?>
 
-<h2>Gerenciamento de Ordens de Produção</h2>
-
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-industry"></i> Ordens de Produção</h2>
+        <a href="adicionar.php" class="button add"><i class="fas fa-plus"></i> Nova Ordem</a>
+    </div>
+<?php if (isset($_SESSION['message'])): ?>
+    <div class="message <?php echo htmlspecialchars($_SESSION['message_type']); ?>">
+        <?php 
+            // A mensagem pode conter HTML (como <strong>), então não usamos htmlspecialchars aqui.
+            echo $_SESSION['message']; 
+        ?>
+    </div>
+    <?php 
+        // Limpa a mensagem da sessão para que não apareça novamente
+        unset($_SESSION['message']);
+        unset($_SESSION['message_type']);
+    ?>
+<?php endif; ?>
 <?php if ($message): ?>
     <div class="message <?php echo $message_type; ?>">
         <?php echo $message; ?>
     </div>
 <?php endif; ?>
 
-<div class="actions-container">
-    <a href="adicionar.php" class="button add">Criar Nova Ordem de Produção</a>
-</div>
 
 <div class="search-container">
     <form action="index.php" method="GET" class="search-form-inline">
@@ -182,7 +195,7 @@ try {
 
     <div class="pagination">
         <?php
-        // Parâmetros base para os links de paginação (mantém pesquisa e filtro)
+        // Parmetros base para os links de paginação (mantém pesquisa e filtro)
         $pagination_base_query = http_build_query(array_filter([
             'module' => 'ordens_producao',
             'search_term' => $search_term,
