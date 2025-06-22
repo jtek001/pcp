@@ -110,18 +110,17 @@ try {
 }
 ?>
 
-<h2>Controle de Estoque</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-boxes-stacked"></i> Visão Geral do Estoque</h2>
+    <a href="movimentar.php" class="button add"><i class="fas fa-arrows-alt-h"></i> Movimentação Manual</a>
+</div>
+
 
 <?php if ($message): ?>
     <div class="message <?php echo $message_type; ?>">
         <?php echo $message; ?>
     </div>
 <?php endif; ?>
-
-<div class="actions-container">
-    <a href="movimentar.php" class="button add">Registrar Movimentação</a>
-    <!-- Botão "Empenho Manual" removido -->
-</div>
 
 <div class="search-container">
     <form action="index.php" method="GET" class="search-form-inline">
@@ -169,9 +168,9 @@ try {
                         <?php
                         // Condição para exibir o status visual
                         if ($produto['estoque_livre'] <= $produto['estoque_minimo']) {
-                            echo '<span style="color: red; font-weight: bold;">CRÍTICO</span>';
+                            echo '<i class="fas fa-exclamation-triangle text-warning" title="Estoque livre abaixo ou igual ao mínimo!"></i>';
                         } else {
-                            echo '<span style="color: green;">OK</span>';
+                            echo '<i class="fas fa-check-circle text-success" title="Estoque OK"></i>';
                         }
                         ?>
                     </td>
@@ -210,12 +209,10 @@ try {
     </div>
 
 <?php else: ?>
-    <tr><td colspan="8" style="text-align: center;">Nenhum produto cadastrado ou encontrado com a pesquisa no estoque.</td></tr>
+    <p style="text-align: center; margin-top: 20px;">Nenhum produto cadastrado ou encontrado com a pesquisa no estoque.</p>
 <?php endif; ?>
 
 <?php
-// Fecha a conexão com o banco de dados
-$conn->close();
 // Inclui o rodapé padrão
 require_once __DIR__ . '/../../includes/footer.php';
 ?>
