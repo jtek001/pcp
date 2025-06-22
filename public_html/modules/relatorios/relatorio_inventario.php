@@ -11,7 +11,7 @@ function get_filter_options($conn, $column) {
     return $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
 }
 
-// Busca opões para os filtros
+// Busca opes para os filtros
 $grupos = get_filter_options($conn, 'grupo');
 $modelos = get_filter_options($conn, 'modelo');
 $acabamentos = get_filter_options($conn, 'acabamento');
@@ -78,7 +78,7 @@ if (isset($_GET['filtrar'])) {
 ?>
 
 <div class="container mt-4">
-    <h2>Relatório de Inventário de Produção</h2>
+    <h2><i class="fas fa-chart-bar"></i>Relatório de Inventário de Produção</h2>
     <p class="lead">Lista de todos os lotes produzidos com saldo disponível em estoque.</p>
 
     <div class="card mb-4">
