@@ -111,7 +111,7 @@ if (isset($_GET['filtrar'])) {
 ?>
 
 <div class="container mt-4">
-    <h2>Relatório de Paradas de Máquina</h2>
+    <h2><i class="fas fa-chart-bar"></i>Relatório de Paradas de Máquina</h2>
 
     <div class="card mb-4">
         <div class="card-header">Filtros</div>
@@ -227,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
             datasets: [
                 {
                     type: 'bar',
-                    label: 'Duração',
+                    label: 'Duraço',
                     data: dataMinutos,
                     backgroundColor: 'rgba(231, 76, 60, 0.7)',
                     borderColor: 'rgba(192, 57, 43, 1)',
