@@ -8,7 +8,7 @@ session_start();
 // Define o fuso horário padrão do PHP para Brasília. ESSENCIAL PARA DATAS/HORAS.
 date_default_timezone_set('America/Sao_Paulo');
 
-// Inclui os arquivos de configuração e o cabeçalho
+// Inclui os arquivos de configuraão e o cabeçalho
 require_once __DIR__ . '/../../config/database.php';
 
 // Conecta ao banco de dados
@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $temp_observacoes_apontamento = sanitizeInput(isset($_POST['observacoes_apontamento']) ? $_POST['observacoes_apontamento'] : '');
 
     if (empty($temp_maquina_id) || empty($temp_quantidade_produzida) || $temp_quantidade_produzida <= 0 || empty($temp_operador_id)) {
-        $_SESSION['message'] = "Máquina, Quantidade Produzida e Operador são campos obrigatórios.";
+        $_SESSION['message'] = "Máquina, Quantidade Produzida e Operador são campos obrigatrios.";
         $_SESSION['message_type'] = "error";
         header("Location: apontar.php?id=" . $op_id);
         exit();
@@ -235,7 +235,7 @@ $necessidade_real = max(0, (float)$op_data['quantidade_produzir'] - $quantidade_
     <button type="submit" class="button submit">Registrar Apontamento</button>
 </form>
 <?php else: ?>
-    <p class="success" style="text-align: center;">Esta Ordem de Produção já foi concluída ou cancelada.</p>
+    <p class="success" style="text-align: center;">Esta Ordem de Produão já foi concluída ou cancelada.</p>
 <?php endif; ?>
 
 <h3 style="margin-top: 40px;">Apontamentos Anteriores desta OP</h3>
@@ -261,7 +261,7 @@ $necessidade_real = max(0, (float)$op_data['quantidade_produzir'] - $quantidade_
                     <td><?php echo htmlspecialchars($apontamento['lote_numero'] ?? 'N/A'); ?></td>
                     <td>
                         <a href="editar_apontamento.php?id=<?php echo $apontamento['id']; ?>" class="button edit small">Editar</a>
-                        <a href="apontar.php?id=<?php echo $op_id; ?>&delete_id=<?php echo $apontamento['id']; ?>" class="button delete small" onclick="return confirm('Tem certeza que deseja excluir este apontamento? A ação irá reverter o estoque e os empenhos.');">Excluir</a>
+                        <a href="apontar.php?id=<?php echo $op_id; ?>&delete_id=<?php echo $apontamento['id']; ?>" class="button delete small" onclick="return confirm('Tem certeza que deseja excluir este apontamento? A aço irá reverter o estoque e os empenhos.');">Excluir</a>
                         <a href="<?php echo BASE_URL; ?>/modules/ordens_producao/gerar_etiqueta.php?id=<?php echo $apontamento['id']; ?>" target="_blank" class="button small">Imprimir</a>
                     </td>
                 </tr>
