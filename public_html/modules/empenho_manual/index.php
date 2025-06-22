@@ -114,7 +114,11 @@ try {
 }
 ?>
 
-<h2>Controle Manual de Empenho de Materiais</h2>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-tasks"></i> Consulta de Empenhos de Materiais</h2>
+        <a href="adicionar.php" class="button add"><i class="fas fa-plus"></i> Novo Empenho Manual</a>
+    </div>
 
 <?php if ($message): ?>
     <div class="message <?php echo $message_type; ?>">
@@ -122,9 +126,7 @@ try {
     </div>
 <?php endif; ?>
 
-<div class="actions-container">
-    <a href="adicionar.php" class="button add">Registrar Novo Empenho Manual</a>
-</div>
+
 
 <div class="search-container">
     <form action="index.php" method="GET" class="search-form-inline">
@@ -194,7 +196,7 @@ try {
 
             // Link para a próxima página
             if ($current_page < $total_pages) {
-                echo '<a href="?' . $pagination_base_query . '&page=' . ($current_page + 1) . '" class="page-link">Próxima &raquo;</a>';
+                echo '<a href="?' . $pagination_base_query . '&page=' . ($current_page + 1) . '" class="page-link">Prxima &raquo;</a>';
             }
         }
         ?>
@@ -205,7 +207,7 @@ try {
 <?php endif; ?>
 
 <?php
-// Fecha a conexão com o banco de dados
+// Fecha a conexo com o banco de dados
 $conn->close();
 // Inclui o rodapé padrão
 require_once __DIR__ . '/../../includes/footer.php';
