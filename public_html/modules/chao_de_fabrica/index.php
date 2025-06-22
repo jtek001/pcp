@@ -126,7 +126,7 @@ try {
 }
 ?>
 
-<h2>Chão de Fábrica - Apontamento de Produção</h2>
+<h2><i class="fas fa-cogs"></i> Chão de Fábrica - Apontamento de Produção</h2>
 
 <?php if ($message): ?>
     <div class="message <?php echo htmlspecialchars($message_type); ?>">
