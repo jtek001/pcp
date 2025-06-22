@@ -1,6 +1,8 @@
 <?php
 ob_start();
 session_start();
+// OBSERVAÇÃO: Fuso horário definido para garantir a hora local correta.
+date_default_timezone_set('America/Sao_Paulo');
 require_once __DIR__ . '/../../../config/database.php';
 
 $conn = connectDB();
@@ -34,9 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sql = "INSERT INTO paradas_maquina (maquina_id, motivo_id, operador_id, data_hora_inicio, data_hora_fim, duracao_minutos, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?)";
             $conn->execute_query($sql, [$maquina_id, $motivo_id, $operador_id, $data_hora_inicio, $data_hora_fim, $duracao_minutos, $observacoes]);
             
-            // --- OBSERVAÇÃO: LÓGICA DE ATUALIZAÇÃO CONDICIONAL DE STATUS ---
             // O status da máquina só é alterado se a parada for registrada sem data de fim.
-            // Se já houver data de fim, assume-se que é um registro retroativo e a máquina já está operacional.
             if (empty($data_hora_fim)) {
                 $sql_get_motivo = "SELECT grupo FROM motivos_parada WHERE id = ?";
                 $motivo_info = $conn->execute_query($sql_get_motivo, [$motivo_id])->fetch_assoc();
