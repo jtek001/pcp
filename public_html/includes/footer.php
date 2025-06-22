@@ -11,11 +11,10 @@
     <!-- <script src="<?php echo BASE_URL; ?>/public/js/main.js"></script> -->
 
 	<!-- Modal de Confirmação de Exclusão -->
-    <!-- Este modal é usado para confirmar ações de exclusão antes de prosseguir -->
         <div id="deleteModal" class="modal">
             <div class="modal-content">
-                <h3>Confirmar Excluso</h3>
-                <p>Você tem certeza que deseja excluir este item? Esta aço não pode ser desfeita.</p>
+                <h3>Confirmar Exclusão</h3>
+                <p>Você tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.</p>
                 <div class="modal-buttons">
                     <!-- Botão para cancelar a exclusão e fechar o modal -->
                     <button class="button cancel" onclick="hideDeleteModal()">Cancelar</button>
@@ -26,51 +25,30 @@
         </div>
 
         <script>
-            // Variveis globais para armazenar o módulo e o ID do item a ser excluído
+            // Variáveis globais para armazenar o módulo e o ID do item a ser excluído
             let deleteModule = '';
             let deleteId = 0;
 
             // Função para exibir o modal de exclusão
-            // Recebe o nome do módulo (ex: 'produtos', 'maquinas', 'ordens_producao', 'operadores', 'materiais', 'bom', 'empenho_manual', 'fornecedores_clientes') e o ID do item
             function showDeleteModal(module, id) {
-                // Aplica .trim() aqui para garantir que não haja espaços em branco
                 deleteModule = module.trim(); 
-                deleteId = id;         
-                // Exibe o modal (alterando a propriedade display do CSS)
+                deleteId = id;        
                 document.getElementById('deleteModal').style.display = 'flex';
-
-                console.log("DEBUG: showDeleteModal called. Module:", deleteModule, "ID:", id); // DEBUG Console
             }
 
-            // Funço para ocultar o modal de exclusão
+            // Função para ocultar o modal de exclusão
             function hideDeleteModal() {
-                // Oculta o modal
                 document.getElementById('deleteModal').style.display = 'none';
-                // Reseta as variveis
                 deleteModule = '';
                 deleteId = 0;
             }
 
             // Adiciona um evento de clique ao botão "Excluir" dentro do modal
             document.getElementById('confirmDeleteButton').onclick = function() {
-                // Se o módulo e o ID estiverem definidos, redireciona para a página de exclusão correspondente
                 if (deleteModule && deleteId) {
                     let finalUrl = '';
                     const baseUrl = '<?php echo BASE_URL; ?>'; // Obtém a BASE_URL do PHP
 
-                    console.log("DEBUG: deleteModule value in onclick (after trim):", deleteModule, "Type:", typeof deleteModule, "Length:", deleteModule.length); // NOVO DEBUG Console
-                    console.log("DEBUG: Is 'apontamentos_producao' === deleteModule?", 'apontamentos_producao' === deleteModule); // NOVO DEBUG Console
-                    console.log("DEBUG: Is 'ordens_producao' === deleteModule?", 'ordens_producao' === deleteModule); // NOVO DEBUG Console
-                    console.log("DEBUG: Is 'maquinas' === deleteModule?", 'maquinas' === deleteModule); // NOVO DEBUG Console
-                    console.log("DEBUG: Is 'produtos' === deleteModule?", 'produtos' === deleteModule); // NOVO DEBUG Console
-                    console.log("DEBUG: Is 'operadores' === deleteModule?", 'operadores' === deleteModule); // NOVO DEBUG Console
-                    console.log("DEBUG: Is 'materiais' === deleteModule?", 'materiais' === deleteModule); // NOVO DEBUG Console
-                    console.log("DEBUG: Is 'bom' === deleteModule?", 'bom' === deleteModule); // NOVO DEBUG Console
-                    console.log("DEBUG: Is 'empenho_manual' === deleteModule?", 'empenho_manual' === deleteModule); // NOVO DEBUG Console
-                    console.log("DEBUG: Is 'fornecedores_clientes' === deleteModule?", 'fornecedores_clientes' === deleteModule); // NOVO DEBUG Console
-
-
-                    // Lógica para determinar o caminho correto do arquivo de exclusão
                     if (deleteModule === 'apontamentos_producao') {
                         finalUrl = `${baseUrl}/modules/ordens_producao/excluir_apontamento.php?id=${deleteId}`;
                     } else if (deleteModule === 'ordens_producao') {
@@ -87,22 +65,16 @@
                         finalUrl = `${baseUrl}/modules/bom/excluir.php?id=${deleteId}`;
                     } else if (deleteModule === 'empenho_manual') { 
                         finalUrl = `${baseUrl}/modules/empenho_manual/excluir.php?id=${deleteId}`;
-                    } else if (deleteModule === 'fornecedores_clientes') { // Adicionado para o módulo de Fornecedores/Clientes
+                    } else if (deleteModule === 'fornecedores_clientes') {
                         finalUrl = `${baseUrl}/modules/fornecedores_clientes/excluir.php?id=${deleteId}`;
                     }
-                    // Adicione mais `else if` para outros módulos se necessário no futuro
 
-                    console.log("DEBUG: Final URL before redirection check:", finalUrl); // DEBUG Console
-
-                    // Redireciona para a URL construída
-                    if (finalUrl) { // Garante que uma URL foi construída
+                    if (finalUrl) {
                         window.location.href = finalUrl;
                     } else {
-                        console.error("DEBUG: Nenhuma URL de exclusão válida construída para o módulo:", deleteModule);
-                        alert("Erro ao determinar a URL de exclusão. Por favor, tente novamente."); // Feedback ao usuário
+                        alert("Erro ao determinar a URL de exclusão.");
                     }
                 }
-                // Oculta o modal após a ação (ou cancelamento)
                 hideDeleteModal();
             };
 
@@ -113,6 +85,73 @@
                     hideDeleteModal();
                 }
             };
+
+            // --- LÓGICA DE LOGOUT POR INATIVIDADE ---
+            let inactivityTimer;
+
+            function resetInactivityTimer() {
+                clearTimeout(inactivityTimer);
+                // Define o tempo em milissegundos (ex: 15 minutos = 15 * 60 * 1000 = 900000)
+                inactivityTimer = setTimeout(logoutDueToInactivity, 900000);
+            }
+
+            function logoutDueToInactivity() {
+                window.location.href = '<?php echo BASE_URL; ?>/public/logout.php?motivo=inatividade';
+            }
+
+            document.addEventListener('mousemove', resetInactivityTimer);
+            document.addEventListener('keypress', resetInactivityTimer);
+            document.addEventListener('click', resetInactivityTimer);
+            document.addEventListener('scroll', resetInactivityTimer);
+
+            resetInactivityTimer();
+            // --- FIM DA LÓGICA DE LOGOUT POR INATIVIDADE ---
+
         </script>
+
+<?php
+// --- INÍCIO DO CÓDIGO DE RASTREAMENTO AVANÇADO (VERSÃO CORRIGIDA) ---
+// Esta função irá criar a sua própria conexão para garantir que a visita seja sempre registada.
+function log_visitor() {
+    // Só executa se não for uma chamada AJAX (para não poluir o log) e se tivermos as constantes de DB
+    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        return;
+    }
+    if (!defined('DB_HOST')) return;
+
+    // OBSERVAÇÃO: Cria uma conexão totalmente nova e independente para o log.
+    $log_conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+
+    if ($log_conn->connect_error) {
+        error_log("Erro de conexão no log de visitas: " . $log_conn->connect_error);
+        return;
+    }
+
+    $usuario_id = $_SESSION['user_id'] ?? null;
+    $usuario_logado = $_SESSION['user_name'] ?? 'Anônimo';
+    $ip_acesso = $_SERVER['REMOTE_ADDR'];
+    $pagina_visitada = $_SERVER['REQUEST_URI'];
+    $pagina_referencia = $_SERVER['HTTP_REFERER'] ?? null;
+    $user_agent = $_SERVER['HTTP_USER_AGENT'];
+
+    try {
+        $sql = "INSERT INTO visitas (usuario_id, usuario_logado, ip_acesso, pagina_visitada, pagina_referencia, user_agent) VALUES (?, ?, ?, ?, ?, ?)";
+        $stmt = $log_conn->prepare($sql);
+        $stmt->bind_param("isssss", $usuario_id, $usuario_logado, $ip_acesso, $pagina_visitada, $pagina_referencia, $user_agent);
+        $stmt->execute();
+        $stmt->close();
+    } catch (Exception $e) {
+        error_log("Erro ao registrar visita avançada: " . $e->getMessage());
+    }
+    
+    // Fecha a conexão do log.
+    $log_conn->close();
+}
+
+// Chama a função para registar a visita
+log_visitor();
+
+// --- FIM DO CÓDIGO DE RASTREAMENTO ---
+?>
 </body>
 </html>
