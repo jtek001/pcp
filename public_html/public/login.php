@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['user_name'] = $user['nome']; // Nome real do operador
                         // --- INÍCIO DA ALTERAÇÃO: Armazenar 'cargo' na sessão (09/06/2025 - IA) ---
                         $_SESSION['user_cargo'] = $user['cargo']; // Armazena o cargo do operador
-                        // --- FIM DA ALTERAÃO: Armazenar 'cargo' ---
+                        // --- FIM DA ALTERAO: Armazenar 'cargo' ---
                         $_SESSION['message'] = "Login realizado com sucesso!";
                         $_SESSION['message_type'] = "success";
 
@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         header("Location: " . BASE_URL . "/public/index.php");
                         exit();
                     } else {
-                        // Senha inválida para usuário existente (e ativo)
+                        // Senha invlida para usuário existente (e ativo)
                         $message = "Usuário ou senha inválidos.";
                         $message_type = "error";
                     }
@@ -182,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </style>
 </head>
-<body>
+<body class="login-page">
     <main>
         <h1><img src="<?php echo BASE_URL; ?>/public/img/logo-jtek.png" height="60" /></h1>
         <?php if ($message): // Exibe a mensagem de feedback (sucesso ou erro) ?>
