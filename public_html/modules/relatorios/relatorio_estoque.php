@@ -74,7 +74,7 @@ $export_query_string = http_build_query(array_filter($_GET));
 ?>
 
 <div class="container mt-4">
-    <h2>Relatório de Posição de Estoque</h2>
+    <h2><i class="fas fa-chart-bar"></i>Relatório de Posição de Estoque</h2>
 
     <div class="card mb-4">
         <div class="card-header">Filtros</div>
@@ -134,7 +134,7 @@ $export_query_string = http_build_query(array_filter($_GET));
         <div class="card">
             <div class="card-header">Resultados</div>
             <div class="card-body">
-              <h4>Posição Atual de Estoque</h4>
+              <h4>Posiço Atual de Estoque</h4>
                 <?php if (!empty($dados_relatorio)): ?>
                 <table>
                     <thead>
