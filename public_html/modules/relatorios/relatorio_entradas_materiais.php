@@ -65,7 +65,7 @@ if (isset($_GET['filtrar'])) {
         $dados_relatorio = $result->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
 
-        // Agrega dados para o gráfico (somatório diário)
+        // Agrega dados para o gráfico (somatrio diário)
         $grafico_agregado = [];
         foreach ($dados_relatorio as $dado) {
             $dia = date('d/m/Y', strtotime($dado['dia']));
@@ -84,7 +84,7 @@ if (isset($_GET['filtrar'])) {
 ?>
 
 <div class="container mt-4">
-    <h2>Relatório de Entradas de Matéria-Prima</h2>
+    <h2><i class="fas fa-chart-bar"></i>Relatório de Entradas de Matéria-Prima</h2>
 
     <div class="card mb-4">
         <div class="card-header">Filtros do Relatório</div>
