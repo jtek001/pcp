@@ -101,7 +101,7 @@ $conn->close();
 </head>
 <body>
     <div class="container">
-        <h1>Ordem de Produão</h1>
+        <h1>Ordem de Produção</h1>
         
         <div class="header-info">
             <div>
