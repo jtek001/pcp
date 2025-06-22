@@ -13,8 +13,22 @@ body {
     line-height: 1.6;
     padding-top: 90px; /* Adiciona padding ao corpo para evitar que o conteúdo fique atrás do header fixo. Ajuste se o header tiver altura diferente. */
     font-size: 12px; 
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+/* Correção para o layout da página de login */
+body.login-page {
+  /* Estas regras forçam a centralização vertical e horizontal */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh; /* Garante que o corpo ocupe a altura total */
 }
 
+body.login-page main {
+  flex-grow: 0; /* Impede que o container principal se estique */
+}
 /* Estilos do cabeçalho */
 header {
     background-color: #2c3e50; /* Azul escuro */
@@ -62,7 +76,7 @@ nav ul li a.active {
     box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Sombra para o item ativo */
 }
 
-/* Estilos do conteúdo principal */
+/* Estilos do contedo principal */
 main {
     padding: 30px; /* Mais padding interno */
     max-width: 1200px; /* Largura máxima */
@@ -70,6 +84,7 @@ main {
     background-color: #fff;
     border-radius: 15px; /* Cantos bem arredondados */
     box-shadow: 0 6px 15px rgba(0,0,0,0.08); /* Sombra mais pronunciada */
+    flex-grow: 1;
 }
 
 /* Estilos de títulos */
@@ -324,7 +339,7 @@ form button[type="submit"] {
 /* Contêiner para botões de ação na parte superior da tabela */
 .actions-container {
     display: flex;
-    justify-content: flex-end; /* Alinha os botões direita */
+    justify-content: flex-end; /* Alinha os botes direita */
     margin-bottom: 20px;
     padding-right: 5px; /* Pequeno ajuste visual */
 }
@@ -368,10 +383,10 @@ form button[type="submit"] {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     transition: all 0.2s ease-in-out;
     margin-right: 10px; /* Adicionar margem direita para botões em linha */
-    width: auto; /* Voltar a ter largura automática */
+    width: auto; /* Voltar a ter largura automtica */
     min-width: auto; /* Remover largura mínima para flexibilidade */
 }
-/* No caso de botões que precisam de quebra de linha em telas menores, podemos adicionar um media query específico para eles */
+/* No caso de botões que precisam de quebra de linha em telas menores, podemos adicionar um media query especfico para eles */
 @media (max-width: 480px) {
     .search-container button,
     .search-container .button-clear {
