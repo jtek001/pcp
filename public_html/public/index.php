@@ -31,6 +31,8 @@ require_once $header_path;
 
 
 // --- Lógica para os Indicadores (KPIs) ---
+$today_date = date('Y-m-d');
+
 // Total de OPs Ativas (Pendentes ou Em Produção)
 $sql_ops_ativas = "SELECT COUNT(id) as total FROM ordens_producao WHERE status IN ('pendente', 'em_producao') AND deleted_at IS NULL";
 $total_ops_ativas = $conn->query($sql_ops_ativas)->fetch_assoc()['total'] ?? 0;
@@ -61,7 +63,6 @@ foreach ($periodo_dias as $dia) {
     $dados_agregados[$dia->format('Y-m-d')] = ['PC' => 0, 'M3' => 0];
 }
 
-// ALTERAÇÃO: Adicionado filtro "p.acabamento = 'Acabado'" para buscar apenas produtos acabados.
 $sql_producao_semanal = "SELECT 
                             DATE(ap.data_apontamento) as dia,
                             SUM(CASE WHEN UPPER(p.unidade_medida) = 'PC' THEN ap.quantidade_produzida ELSE 0 END) AS total_quantidade_pc,
@@ -98,7 +99,6 @@ $dados_grafico_m3 = array_column($dados_agregados, 'M3');
 
 <div class="container mt-4">
     <?php
-    // OBSERVAÇÃO: Bloco para exibir mensagens de feedback (ex: login bem-sucedido)
     if (isset($_SESSION['message'])) {
         echo "<div class='message " . htmlspecialchars($_SESSION['message_type']) . "'>" . $_SESSION['message'] . "</div>";
         unset($_SESSION['message']);
@@ -106,26 +106,91 @@ $dados_grafico_m3 = array_column($dados_agregados, 'M3');
     }
     ?>
     <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
-    <p class="lead">Visão geral das operações e indicadores chave de desempenho.</p>
+    <p class="lead">Atalhos para os módulos principais do sistema.</p>
+
+    <!-- Novos Cards de Atalho -->
+    <div class="row mt-4">
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-shopping-cart fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Vendas</h5>
+                    <p class="card-text text-muted">Crie e gerencie os pedidos de venda dos seus clientes.</p>
+                    <a href="<?php echo BASE_URL; ?>/modules/pedidos_venda/index.php" class="button">Acessar Pedidos</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-industry fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Ordens de Produção</h5>
+                    <p class="card-text text-muted">Gere e acompanhe as ordens de produção para o chão de fábrica.</p>
+                    <a href="<?php echo BASE_URL; ?>/modules/ordens_producao/index.php" class="button">Acessar OPs</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-cogs fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Chão de Fábrica</h5>
+                    <p class="card-text text-muted">Realize apontamentos de produção e consumo de materiais.</p>
+                    <a href="<?php echo BASE_URL; ?>/modules/chao_de_fabrica/index.php" class="button">Acessar Chão de Fábrica</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-tools fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Manutenção</h5>
+                    <p class="card-text text-muted">Controle as paradas de máquina e manutenções.</p>
+                    <a href="<?php echo BASE_URL; ?>/modules/manutencao/index.php" class="button">Acessar Manutenção</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-boxes-stacked fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Estoques</h5>
+                    <p class="card-text text-muted">Visualize e gerencie os níveis de estoque de todos os itens.</p>
+                    <a href="<?php echo BASE_URL; ?>/modules/estoque/index.php" class="button">Acessar Estoque</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-chart-pie fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Relatórios</h5>
+                    <p class="card-text text-muted">Visualize dados sobre produção, estoque e paradas.</p>
+                    <a href="<?php echo BASE_URL; ?>/modules/relatorios/index.php" class="button">Ver Relatórios</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Indicadores -->
-    <div class="row indicators-container">
+    <hr class="my-4">
+    <div class="row">
         <div class="col-md-4 mb-4">
-            <div class="indicator-card">
+            <div class="indicator-card h-100">
                 <h3>OPs Ativas</h3>
                 <p class="indicator-number"><?php echo $total_ops_ativas; ?></p>
                 <p class="indicator-description">Ordens pendentes ou em produção.</p>
             </div>
         </div>
         <div class="col-md-4 mb-4">
-            <div class="indicator-card <?php echo ($total_maquinas_paradas > 0) ? 'alert' : ''; ?>">
+            <div class="indicator-card h-100 <?php echo ($total_maquinas_paradas > 0) ? 'alert' : ''; ?>">
                 <h3>Máquinas Paradas</h3>
                 <p class="indicator-number"><?php echo $total_maquinas_paradas; ?></p>
                 <p class="indicator-description">Manutenção ou problemas.</p>
             </div>
         </div>
         <div class="col-md-4 mb-4">
-            <div class="indicator-card">
+            <div class="indicator-card h-100">
                 <h3>Máquinas Operacionais</h3>
                 <p class="indicator-number" style="color: #27ae60;"><?php echo $total_maquinas_operacionais; ?></p>
                 <p class="indicator-description">Equipamentos prontos para uso.</p>
@@ -133,6 +198,7 @@ $dados_grafico_m3 = array_column($dados_agregados, 'M3');
         </div>
     </div>
     
+
     <!-- Gráfico de Produção -->
     <div class="card mt-4">
         <div class="card-header">
