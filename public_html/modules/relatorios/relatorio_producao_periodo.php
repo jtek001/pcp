@@ -120,7 +120,7 @@ if (isset($_GET['filtrar'])) {
 ?>
 
 <div class="container mt-4">
-    <h2>Relatório de Produção por Período</h2>
+    <h2><i class="fas fa-chart-bar"></i> Relatório de Produção por Período</h2>
 
     <div class="card mb-4">
         <div class="card-header">Filtros do Relatório</div>
