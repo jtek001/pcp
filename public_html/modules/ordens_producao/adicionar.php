@@ -58,15 +58,11 @@ function gerarOpsFilhasEReservas($conn, $op_pai_id, $produto_pai_id, $quantidade
                             $maquina_filha_id = $etapa['centro_trabalho_id'];
                         }
 
-                        $data_conclusao_filha = null;
-                        if ($data_conclusao_pai) {
-                            $data_conclusao_filha = date('Y-m-d', strtotime($data_conclusao_pai . ' -2 days'));
-                        }
-
+                        $data_conclusao_filha = $data_conclusao_pai ? date('Y-m-d', strtotime($data_conclusao_pai . ' -2 days')) : null;
                         $numero_op_filha = generateUniqueOpNumber($conn);
                         $data_emissao_filha = date('Y-m-d');
                         
-                        $params_op_filha = [$op_pai_id, $numero_op_filha, $numero_pedido_pai, $material_id, $maquina_filha_id, $necessidade_liquida, $data_emissao_filha, $data_conclusao_filha];
+                        $params_op_filha = [$op_mae_id, $numero_op_filha, $numero_pedido_pai, $material_id, $maquina_filha_id, $necessidade_liquida, $data_emissao_filha, $data_conclusao_filha];
                         $conn->execute_query("INSERT INTO ordens_producao (op_mae_id, numero_op, numero_pedido, produto_id, maquina_id, quantidade_produzir, data_emissao, data_prevista_conclusao, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pendente')", $params_op_filha);
                         $op_filha_id = $conn->insert_id;
                         $ops_criadas++;
@@ -93,10 +89,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $temp_data_prevista_conclusao = !empty($_POST['data_prevista_conclusao']) ? sanitizeInput($_POST['data_prevista_conclusao']) : null;
     $temp_observacoes = sanitizeInput($_POST['observacoes'] ?? '');
 
-    if (empty($temp_numero_pedido)) $temp_numero_pedido = date('dmyHm');
-
-    if (empty($temp_numero_op) || empty($temp_produto_id) || empty($temp_quantidade_produzir) || empty($temp_data_emissao)) {
-        $_SESSION['message'] = "Todos os campos obrigatórios devem ser preenchidos.";
+    // OBSERVAÇÃO: Validação agora inclui o número do pedido
+    if (empty($temp_numero_op) || empty($temp_produto_id) || empty($temp_quantidade_produzir) || empty($temp_data_emissao) || empty($temp_numero_pedido)) {
+        $_SESSION['message'] = "Todos os campos obrigatórios devem ser preenchidos, incluindo o Número do Pedido.";
         $_SESSION['message_type'] = "error";
         header("Location: adicionar.php");
         exit();
@@ -104,10 +99,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $conn->begin_transaction();
     try {
-        if (!empty($temp_numero_pedido)) {
-            $conn->execute_query("INSERT IGNORE INTO pedidos_venda_lookup (numero_pedido) VALUES (?)", [$temp_numero_pedido]);
-        }
-        
         $params_insert_op = [$temp_numero_op, $temp_numero_pedido, $temp_produto_id, $temp_maquina_id, $temp_quantidade_produzir, $temp_data_emissao, $temp_data_prevista_conclusao, $temp_observacoes];
         $conn->execute_query("INSERT INTO ordens_producao (numero_op, numero_pedido, produto_id, maquina_id, quantidade_produzir, data_emissao, data_prevista_conclusao, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", $params_insert_op);
         $op_mae_id = $conn->insert_id;
@@ -135,19 +126,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// --- A página só começa a ser desenhada a partir daqui ---
 require_once __DIR__ . '/../../includes/header.php';
 
-function getDistinctValues($conn, $table_name, $column_name, $where_clause = '') {
-    $values = [];
-    $sql = "SELECT DISTINCT " . $column_name . " FROM " . $table_name . " WHERE " . $column_name . " IS NOT NULL AND " . $column_name . " != '' " . $where_clause . " ORDER BY " . $column_name . " ASC";
-    $result = $conn->query($sql);
-    if ($result) while ($row = $result->fetch_assoc()) $values[] = $row[$column_name];
-    return $values;
-}
-
 $maquinas_ativas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL AND status = 'operacional' ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
-$pedidos_venda = $conn->query("SELECT pv.numero_pedido, fc.nome as cliente_nome FROM pedidos_venda pv JOIN fornecedores_clientes_lookup fc ON pv.cliente_id = fc.id WHERE pv.status = 'Aprovado' AND pv.deleted_at IS NULL ORDER BY pv.numero_pedido DESC")->fetch_all(MYSQLI_ASSOC);
+$sql_pedidos = "SELECT pv.numero_pedido, fc.nome as cliente_nome 
+                FROM pedidos_venda pv 
+                JOIN fornecedores_clientes_lookup fc ON pv.cliente_id = fc.id 
+                WHERE pv.status = 'Aprovado' AND pv.deleted_at IS NULL 
+                ORDER BY pv.numero_pedido DESC";
+$pedidos_venda = $conn->query($sql_pedidos)->fetch_all(MYSQLI_ASSOC);
+
 $random_numero_op = generateUniqueOpNumber($conn);
 $default_data_prevista = date('Y-m-d', strtotime('+7 days'));
 ?>
@@ -166,9 +154,9 @@ $default_data_prevista = date('Y-m-d', strtotime('+7 days'));
     </div>
 
     <div class="form-group">
-        <label for="numero_pedido_select">Número do Pedido (Aprovados):</label>
-        <select id="numero_pedido_select" name="numero_pedido">
-            <option value="">Nenhum/Avulso</option>
+        <label for="numero_pedido">Número do Pedido (Aprovados)*:</label>
+        <select id="numero_pedido" name="numero_pedido" required>
+            <option value="">Selecione um pedido...</option>
             <?php foreach ($pedidos_venda as $pedido): ?>
                 <option value="<?php echo htmlspecialchars($pedido['numero_pedido']); ?>">
                     <?php echo htmlspecialchars('Pedido: ' . $pedido['numero_pedido'] . ' - Cliente: ' . $pedido['cliente_nome']); ?>
@@ -245,7 +233,6 @@ $default_data_prevista = date('Y-m-d', strtotime('+7 days'));
                 return;
             }
             
-            // OBSERVAÇÃO: A busca agora usa o novo endpoint que retorna também a máquina do roteiro.
             fetch(`${baseUrl}/modules/ordens_producao/ajax_get_produto_roteiro.php?codigo=${encodeURIComponent(codigo)}`)
                 .then(response => {
                     if (!response.ok) return response.json().then(err => Promise.reject(err));
@@ -265,7 +252,6 @@ $default_data_prevista = date('Y-m-d', strtotime('+7 days'));
                     this.focus();
                 });
         });
-
     });
 </script>
 
