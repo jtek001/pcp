@@ -5,7 +5,7 @@
 // Inicia a sessão para usar variáveis de sessão
 session_start();
 
-// Habilita a exibição de todos os erros PHP para depuração (REMOVER EM PRODUÇÃO)
+// Habilita a exibião de todos os erros PHP para depuração (REMOVER EM PRODUÇO)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -232,7 +232,7 @@ $default_data_hora_mov = date('Y-m-d\TH:i');
         </datalist>
         <input type="hidden" id="produto_id_hidden" name="produto_id_hidden" value="<?php echo $initial_produto_id_hidden; ?>" required>
     </div>
-
+<br>
     <div class="form-group">
         <label for="quantidade_em_estoque_display">Estoque Atual:</label>
         <input type="text" id="quantidade_em_estoque_display" value="<?php echo $current_product_stock_display; ?>" readonly placeholder="Estoque atual">
@@ -415,7 +415,7 @@ $default_data_hora_mov = date('Y-m-d\TH:i');
                     fetch(`${baseUrl}/modules/empenho_manual/get_ops_for_empenho.php?term=${encodeURIComponent(searchTerm)}`) 
                         .then(response => {
                             if (!response.ok) {
-                                // Se a resposta NÃO for OK, tenta ler como texto para depuração
+                                // Se a resposta NO for OK, tenta ler como texto para depuração
                                 return response.text().then(text => { throw new Error(`HTTP error! status: ${response.status}, Response: ${text}`); });
                             }
                             return response.json();
@@ -452,7 +452,7 @@ $default_data_hora_mov = date('Y-m-d\TH:i');
                     opIdHiddenInput.value = '';
                 }
             });
-            // Re-preenche a OP se já estiver selecionada (após erro de POST)
+            // Re-preenche a OP se j estiver selecionada (após erro de POST)
             const initialOpIdHiddenValue = opIdHiddenInput.value;
             if (initialOpIdHiddenValue) {
                 fetchOpsForSearch(opSearchInput.value); 
@@ -465,14 +465,14 @@ $default_data_hora_mov = date('Y-m-d\TH:i');
         // --- Lógica de validação do formulário antes de enviar ---
         const empenhoForm = document.getElementById('empenhoForm');
         empenhoForm.addEventListener('submit', function(event) {
-            // Verifica se os campos hidden de ID estão preenchidos
+            // Verifica se os campos hidden de ID esto preenchidos
             if (!produtoIdHiddenInput.value) {
                 alert('Por favor, selecione um Produto/Material válido da lista de sugestões.');
                 event.preventDefault(); // Impede o envio do formulário
                 return;
             }
             if (!opIdHiddenInput.value) {
-                alert('Por favor, selecione uma Ordem de Produção (OP) válida da lista de sugestões.');
+                alert('Por favor, selecione uma Ordem de Produão (OP) válida da lista de sugestões.');
                 event.preventDefault(); // Impede o envio do formulário
                 return;
             }
