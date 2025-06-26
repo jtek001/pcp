@@ -77,8 +77,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <select name="tipo_movimentacao" id="tipo_movimentacao" required>
                 <option value="entrada">Entrada</option>
                 <option value="saida">Saída</option>
-                <option value="ajuste_entrada">Ajuste (Entrada)</option>
-                <option value="ajuste_saida">Ajuste (Saída)</option>
             </select>
         </div>
 
