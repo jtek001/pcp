@@ -95,7 +95,7 @@ if (!$op_id) {
 $op_sql = "SELECT op.numero_op, p.nome as produto_nome, p.codigo as produto_codigo FROM ordens_producao op JOIN produtos p ON op.produto_id = p.id WHERE op.id = ?";
 $op_details = $conn->execute_query($op_sql, [$op_id])->fetch_assoc();
 
-$operadores = $conn->query("SELECT id, nome FROM operadores WHERE deleted_at IS NULL ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
+$operadores = $conn->query("SELECT id, nome FROM operadores WHERE deleted_at IS NULL AND ativo = 1 ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
 
 $consumos_sql = "SELECT cp.id as consumo_id, cp.data_consumo, p.nome as material_nome, cp.quantidade_consumida, resp.nome as responsavel_nome
                  FROM consumo_producao cp
