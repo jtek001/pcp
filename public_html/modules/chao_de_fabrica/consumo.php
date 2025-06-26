@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 // OBSERVAÇÃO: Mensagem de sucesso dinâmica
                 if ($novo_lote_numero_devolucao) {
-                    $_SESSION['message'] = "Consumo parcial registrado! O saldo foi devolvido para o novo lote: <strong>" . $novo_lote_numero_devolucao . "</strong>. Por favor, anote na etiqueta.";
+                    $_SESSION['message'] = "Consumo parcial registrado! O saldo foi devolvido para o novo lote: <strong>" . $novo_lote_numero_devolucao . "</strong>. Por favor, anote na nova etiqueta.";
                 } else {
                     $_SESSION['message'] = "Consumo total do lote registrado com sucesso!";
                 }
@@ -142,8 +142,9 @@ if (!$op_id) {
 $op_sql = "SELECT op.numero_op, p.nome as produto_nome, p.codigo as produto_codigo FROM ordens_producao op JOIN produtos p ON op.produto_id = p.id WHERE op.id = ?";
 $op_details = $conn->execute_query($op_sql, [$op_id])->fetch_assoc();
 
-$operadores = $conn->query("SELECT id, nome FROM operadores WHERE deleted_at IS NULL ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
+$operadores = $conn->query("SELECT id, nome FROM operadores WHERE deleted_at IS NULL AND ativo = 1 ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
 
+// ALTERAÇÃO: Adicionado filtro por família = 'Semiacabado'
 $consumos_anteriores_sql = "SELECT 
                                 cp.id as consumo_id,
                                 cp.data_consumo,
@@ -155,7 +156,9 @@ $consumos_anteriores_sql = "SELECT
                             LEFT JOIN apontamentos_producao ap ON cp.apontamento_id = ap.id
                             JOIN produtos p ON cp.produto_material_id = p.id
                             LEFT JOIN operadores resp ON cp.responsavel_id = resp.id
-                            WHERE cp.ordem_producao_id = ? AND cp.deleted_at IS NULL
+                            WHERE cp.ordem_producao_id = ? 
+                              AND cp.deleted_at IS NULL 
+                              AND UPPER(p.familia) = 'SEMIACABADO'
                             ORDER BY cp.data_consumo DESC";
 $consumos_anteriores = $conn->execute_query($consumos_anteriores_sql, [$op_id])->fetch_all(MYSQLI_ASSOC);
 
@@ -184,8 +187,8 @@ require_once __DIR__ . '/../../includes/header.php';
         <input type="hidden" name="action" value="consumir">
         
         <div class="form-group full-width">
-            <label for="lote_search">Buscar por Nmero do Lote:</label>
-            <input type="text" id="lote_search" placeholder="Digite o nmero completo do lote e saia do campo">
+            <label for="lote_search">Buscar por Número do Lote:</label>
+            <input type="text" id="lote_search" placeholder="Digite o número completo do lote e saia do campo">
             <input type="hidden" name="apontamento_id" id="apontamento_id" required>
         </div>
 
@@ -222,7 +225,7 @@ require_once __DIR__ . '/../../includes/header.php';
 
     <div class="card mt-4">
         <div class="card-header">
-            <h3>Materiais Consumidos Nesta OP</h3>
+            <h3>Semiacabados Consumidos Nesta OP</h3>
         </div>
         <div class="card-body">
             <table>
@@ -252,7 +255,7 @@ require_once __DIR__ . '/../../includes/header.php';
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="6" style="text-align: center;">Nenhum consumo registrado para esta OP ainda.</td>
+                            <td colspan="6" style="text-align: center;">Nenhum consumo de semiacabado registrado para esta OP.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
