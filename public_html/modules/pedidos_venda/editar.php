@@ -13,7 +13,7 @@ if (!$pedido_id) {
     exit();
 }
 
-// Processa ações (adicionar, remover, finalizar, etc.)
+// Processa ações (adicionar, remover, finalizar)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
 
@@ -36,8 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $conn->execute_query("DELETE FROM pedidos_venda_itens WHERE id = ?", [$item_id]);
         }
     } elseif ($action === 'approve_order') {
+        // Altera o status para 'Aprovado' ao finalizar.
         $conn->execute_query("UPDATE pedidos_venda SET status = 'Aprovado' WHERE id = ?", [$pedido_id]);
-        $_SESSION['message'] = "Pedido enviado para aprovação.";
+        $_SESSION['message'] = "Pedido finalizado e enviado para aprovação.";
         $_SESSION['message_type'] = "success";
     } elseif ($action === 'mark_completed') {
         $conn->execute_query("UPDATE pedidos_venda SET status = 'Concluido' WHERE id = ?", [$pedido_id]);
@@ -89,25 +90,28 @@ require_once __DIR__ . '/../../includes/header.php';
     <div class="card mb-4">
         <div class="card-header">Adicionar Itens ao Pedido</div>
         <div class="card-body">
-            <div class="form-group full-width">
-                <label for="produto_search">Buscar Produto</label>
-                <input type="text" id="produto_search" class="form-control" placeholder="Digite o nome ou código...">
-                <div id="produto_results" class="list-group position-absolute" style="z-index: 1000;"></div>
-                <input type="hidden" id="produto_id">
-            </div>
-            <div class="row align-items-end mt-2">
-                <div class="col-md-5">
-                    <label for="quantidade">Quantidade</label>
-                    <input type="number" id="quantidade" class="form-control" step="0.01" value="1">
+            <form action="editar.php?id=<?php echo $pedido_id; ?>" method="POST">
+                <input type="hidden" name="action" value="add_item">
+                <div class="form-group full-width">
+                    <label for="produto_search">Buscar Produto</label>
+                    <input type="text" id="produto_search" class="form-control" placeholder="Digite o nome ou código...">
+                    <div id="produto_results" class="list-group position-absolute" style="z-index: 1000;"></div>
+                    <input type="hidden" name="produto_id" id="produto_id" required>
                 </div>
-                <div class="col-md-5">
-                    <label for="preco_unitario">Preço Unitário</label>
-                    <input type="number" id="preco_unitario" class="form-control" step="0.01" value="0.00">
+                <div class="row align-items-end mt-2">
+                    <div class="col-md-5">
+                        <label>Quantidade</label>
+                        <input type="number" name="quantidade" class="form-control" step="0.01" value="1" required>
+                    </div>
+                    <div class="col-md-5">
+                        <label>Preço Unitário</label>
+                        <input type="number" name="preco_unitario" class="form-control" step="0.01" value="0.00" required>
+                    </div>
+                    <div class="col-md-2">
+                         <button type="submit" class="button add" style="width: 100%; height: 38px;">Adicionar</button>
+                    </div>
                 </div>
-                <div class="col-md-2">
-                    <button type="button" class="button add" id="add_item_button" style="width: 100%; height: 38px;">Adicionar</button>
-                </div>
-            </div>
+            </form>
         </div>
     </div>
     <?php endif; ?>
@@ -144,7 +148,7 @@ require_once __DIR__ . '/../../includes/header.php';
                 <tfoot>
                     <tr style="font-weight: bold; font-size: 1.1em;">
                         <td colspan="3" class="text-end">TOTAL DO PEDIDO:</td>
-                        <td class="text-end">R$ <?php echo number_format($pedido['valor_total'], 2, ',', '.'); ?></td>
+                        <td class="text-end" id="total_pedido_display">R$ <?php echo number_format($pedido['valor_total'], 2, ',', '.'); ?></td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -156,10 +160,10 @@ require_once __DIR__ . '/../../includes/header.php';
         <a href="index.php" class="button button-clear">Voltar para a Lista</a>
         <div>
             <?php if($pedido['status'] === 'Aguardando Itens'): ?>
-                 <button type="button" class="button submit" onclick="submitAction('approve_order')">Aprovar</button>
+                 <button type="button" class="button submit" onclick="submitAction('approve_order')">Finalizar</button>
             <?php elseif($pedido['status'] === 'Aprovado' || $pedido['status'] === 'Em Producao'): ?>
                 <button type="button" class="button" style="background-color: #f39c12;">Gerar OP</button>
-                <button type="button" class="button submit" onclick="submitAction('mark_completed')">Finalizar</button>
+                <button type="button" class="button submit" onclick="submitAction('mark_completed')">Marcar como Concluído</button>
             <?php endif; ?>
         </div>
     </div>
@@ -168,11 +172,8 @@ require_once __DIR__ . '/../../includes/header.php';
 <script>
 // JavaScript para manipular as ações da página
 function submitAction(actionName, itemId = null) {
-    // Apenas para as ações que não precisam de confirmação, como 'approve_order' ou 'mark_completed'
-    if (actionName === 'approve_order' || actionName === 'mark_completed') {
-        if (!confirm('Tem certeza que deseja continuar com esta ação?')) {
-            return;
-        }
+    if (actionName !== 'delete_item' && !confirm('Tem certeza que deseja continuar com esta ação?')) {
+        return;
     }
     
     const form = document.createElement('form');
@@ -213,12 +214,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const query = this.value;
         if (query.length < 2) {
             produtoResultsDiv.innerHTML = '';
+            produtoResultsDiv.style.display = 'none';
             return;
         }
         fetch(`${baseUrl}/modules/pedidos_venda/ajax_get_produtos_for_pedido.php?q=${query}`)
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) { return response.text().then(text => { throw new Error(`Erro: ${text}`) }); }
+                return response.json();
+            })
             .then(data => {
                 produtoResultsDiv.innerHTML = '';
+                produtoResultsDiv.style.display = (data.length > 0) ? 'block' : 'none';
                 data.forEach(produto => {
                     const item = document.createElement('a');
                     item.href = '#';
@@ -229,25 +235,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         produtoSearchInput.value = item.textContent;
                         produtoIdInput.value = produto.id;
                         produtoResultsDiv.innerHTML = '';
+                        produtoResultsDiv.style.display = 'none';
+                        document.getElementById('quantidade').focus();
                     };
                     produtoResultsDiv.appendChild(item);
                 });
-            });
-    });
-
-    document.getElementById('add_item_button').addEventListener('click', function() {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = 'editar.php?id=<?php echo $pedido_id; ?>';
-        
-        form.innerHTML = `
-            <input type="hidden" name="action" value="add_item">
-            <input type="hidden" name="produto_id" value="${document.getElementById('produto_id').value}">
-            <input type="hidden" name="quantidade" value="${document.getElementById('quantidade').value}">
-            <input type="hidden" name="preco_unitario" value="${document.getElementById('preco_unitario').value}">
-        `;
-        document.body.appendChild(form);
-        form.submit();
+            })
+            .catch(error => console.error("Erro ao buscar produtos:", error));
     });
 });
 </script>
