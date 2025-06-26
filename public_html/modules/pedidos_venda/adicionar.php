@@ -2,30 +2,27 @@
 ob_start();
 session_start();
 require_once __DIR__ . '/../../config/database.php';
-
 // OBSERVAÇÃO: Define o fuso horário para garantir a hora correta.
 date_default_timezone_set('America/Sao_Paulo');
+require_once __DIR__ . '/../../includes/header.php';
 
 $conn = connectDB();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cliente_id = filter_input(INPUT_POST, 'cliente_id_hidden', FILTER_VALIDATE_INT);
-    $numero_pedido = sanitizeInput($_POST['numero_pedido']); // Captura o número do pedido
+    $numero_pedido = sanitizeInput($_POST['numero_pedido']);
     $data_pedido = sanitizeInput($_POST['data_pedido']);
     $data_previsao_entrega = sanitizeInput($_POST['data_previsao_entrega']) ?: null;
     $observacoes = sanitizeInput($_POST['observacoes']);
     
     if ($cliente_id && !empty($data_pedido) && !empty($numero_pedido)) {
         try {
-            // Adicionada a coluna 'numero_pedido' na inserção
             $sql_pedido = "INSERT INTO pedidos_venda (cliente_id, numero_pedido, data_pedido, data_previsao_entrega, observacoes, status) VALUES (?, ?, ?, ?, ?, 'Aguardando Itens')";
             $conn->execute_query($sql_pedido, [$cliente_id, $numero_pedido, $data_pedido, $data_previsao_entrega, $observacoes]);
             $pedido_id = $conn->insert_id;
 
             $_SESSION['message'] = "Cabeçalho do Pedido Nº {$pedido_id} criado com sucesso! Agora, adicione os itens.";
             $_SESSION['message_type'] = "success";
-            
-            // Redireciona para a página de edição para adicionar os itens
             header("Location: editar.php?id=" . $pedido_id);
             exit();
 
@@ -41,16 +38,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit();
 }
 
-require_once __DIR__ . '/../../includes/header.php';
-
-// Gera os valores padrão para o formulário
 $default_data_prevista = date('Y-m-d', strtotime('+30 days'));
-$default_numero_pedido = date('ymdHi'); // Formato YYmmddHHmm
+$default_numero_pedido = date('ymdHis');
 ?>
 
 <div class="container mt-4">
     <h2><i class="fas fa-plus-circle"></i> Novo Pedido de Venda - Etapa 1/2</h2>
-    <p class="lead">Primeiro, selecione o cliente e as datas do pedido.</p>
+    <p class="lead">Primeiro, selecione o cliente e defina as datas do pedido.</p>
 
     <?php if (isset($_SESSION['message'])): ?>
     <div class="message <?php echo htmlspecialchars($_SESSION['message_type']); ?>">
@@ -68,7 +62,6 @@ $default_numero_pedido = date('ymdHi'); // Formato YYmmddHHmm
             <input type="hidden" name="cliente_id_hidden" id="cliente_id_hidden" required>
         </div>
 
-        <!-- Container para os campos de data e pedido -->
         <div class="form-group full-width">
             <div class="row">
                 <div class="col-md-4">
