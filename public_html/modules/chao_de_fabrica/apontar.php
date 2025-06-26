@@ -5,10 +5,10 @@
 // Inicia a sessão para usar variáveis de sessão (necessário para mensagens)
 session_start();
 
-// Define o fuso horário padrão do PHP para Brasília. ESSENCIAL PARA DATAS/HORAS.
+// Define o fuso horário padrão do PHP para Braslia. ESSENCIAL PARA DATAS/HORAS.
 date_default_timezone_set('America/Sao_Paulo');
 
-// Inclui os arquivos de configuração e o cabeçalho
+// Inclui os arquivos de configuraão e o cabeçalho
 require_once __DIR__ . '/../../config/database.php';
 
 // Conecta ao banco de dados
@@ -69,6 +69,13 @@ if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
             $sql_delete_mov = "DELETE FROM movimentacoes_estoque WHERE observacoes = ?";
             $conn->execute_query($sql_delete_mov, [$obs_movimentacao]);
 
+            // 6. OBSERVAÇÃO: Verifica o status da OP e reabre se estiver 'concluida'
+            $sql_get_op_status = "SELECT status FROM ordens_producao WHERE id = ?";
+            $op_status_result = $conn->execute_query($sql_get_op_status, [$op_id_do_apontamento])->fetch_assoc();
+            if ($op_status_result && $op_status_result['status'] === 'concluida') {
+                $sql_reopen_op = "UPDATE ordens_producao SET status = 'em_producao', data_conclusao = NULL WHERE id = ?";
+                $conn->execute_query($sql_reopen_op, [$op_id_do_apontamento]);
+            }
 
             $conn->commit();
             $_SESSION['message'] = "Apontamento excluído e estoques revertidos com sucesso.";
@@ -87,9 +94,9 @@ if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
 }
 
 
-// Processa o formulário de criação de apontamento quando submetido
+// Processa o formulrio de criação de apontamento quando submetido
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $op_id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+    $op_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
     
     $temp_maquina_id = sanitizeInput(isset($_POST['maquina_id']) ? $_POST['maquina_id'] : '');
     $temp_quantidade_produzida = (float) sanitizeInput(isset($_POST['quantidade_produzida']) ? $_POST['quantidade_produzida'] : 0.0);
@@ -177,7 +184,7 @@ $op_data = $conn->execute_query($sql_select_op, [$op_id])->fetch_assoc();
 if (!$op_data) { die("Ordem de Produção não encontrada."); }
 
 $maquinas_ativas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL AND status = 'operacional' ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
-$operadores = $conn->query("SELECT id, nome, matricula FROM operadores WHERE deleted_at IS NULL ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
+$operadores = $conn->query("SELECT id, nome, matricula FROM operadores WHERE deleted_at IS NULL AND ativo = 1 ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
 $apontamentos_anteriores = $conn->execute_query("SELECT ap.*, m.nome AS maquina_nome, ol.nome AS operador_nome, ol.matricula AS operador_matricula FROM apontamentos_producao ap JOIN maquinas m ON ap.maquina_id = m.id LEFT JOIN operadores ol ON ap.operador_id = ol.id WHERE ap.ordem_producao_id = ? AND ap.deleted_at IS NULL ORDER BY ap.data_apontamento DESC", [$op_id])->fetch_all(MYSQLI_ASSOC);
 
 $quantidade_total_apontada = (float)($conn->execute_query("SELECT SUM(COALESCE(quantidade_produzida, 0.00)) AS total FROM apontamentos_producao WHERE ordem_producao_id = ? AND deleted_at IS NULL", [$op_id])->fetch_assoc()['total'] ?? 0.00);
@@ -195,7 +202,7 @@ $necessidade_real = max(0, (float)$op_data['quantidade_produzir'] - $quantidade_
     <p><strong>Produto:</strong> <?php echo htmlspecialchars($op_data['produto_nome'] . ' (' . $op_data['produto_codigo'] . ')'); ?></p>
     <p><strong>Qtd. a Produzir:</strong> <?php echo number_format($op_data['quantidade_produzir'], 2, ',', '.'); ?></p>
     <p><strong>Já Produzido:</strong> <?php echo number_format($quantidade_total_apontada, 2, ',', '.'); ?></p>
-    <p><strong>Necessidade Real:</strong> <?php echo number_format($necessidade_real, 2, ',', '.'); ?></p>
+    <p><strong>Necessidade:</strong> <?php echo number_format($necessidade_real, 2, ',', '.'); ?></p>
     <p><strong>Status da OP:</strong> <span class="status-<?php echo htmlspecialchars($op_data['status']); ?>"><?php echo htmlspecialchars(ucfirst($op_data['status'])); ?></span></p>
 </div>
 
@@ -247,7 +254,7 @@ $necessidade_real = max(0, (float)$op_data['quantidade_produzir'] - $quantidade_
                 <th>Operador</th>
                 <th>Qtd. Apontada</th>
                 <th>Lote</th>
-                <th>Ações</th>
+                <th>Aões</th>
             </tr>
         </thead>
         <tbody>
@@ -260,7 +267,6 @@ $necessidade_real = max(0, (float)$op_data['quantidade_produzir'] - $quantidade_
                     <td><?php echo htmlspecialchars($apontamento['lote_numero'] ?? 'N/A'); ?></td>
                     <td>
                         <a href="editar_apontamento.php?id=<?php echo $apontamento['id']; ?>" class="button edit small">Editar</a>
-                        <!-- BOTÃO REVERTIDO: Usa um link com confirmação JS padrão -->
                         <a href="apontar.php?id=<?php echo $op_id; ?>&delete_id=<?php echo $apontamento['id']; ?>" class="button delete small" onclick="return confirm('Tem certeza que deseja excluir este apontamento? A ação irá reverter o estoque e os empenhos.');">Excluir</a>
                         <a href="<?php echo BASE_URL; ?>/modules/ordens_producao/gerar_etiqueta.php?id=<?php echo $apontamento['id']; ?>" target="_blank" class="button small">Imprimir</a>
                     </td>
@@ -275,7 +281,7 @@ $necessidade_real = max(0, (float)$op_data['quantidade_produzir'] - $quantidade_
 <a href="index.php" class="back-link">Voltar para a lista do Chão de Fábrica</a>
 
 <?php
-// Fecha a conexão com o banco de dados
+// Fecha a conexo com o banco de dados
 $conn->close();
 // Inclui o rodapé padrão
 require_once __DIR__ . '/../../includes/footer.php';
