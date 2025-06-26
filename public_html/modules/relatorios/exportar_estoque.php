@@ -6,9 +6,11 @@ $conn = connectDB();
 try {
     $params = [];
     $types = '';
+    
+    // OBSERVAÇÃO: A consulta foi alterada para p.* para buscar todas as colunas da tabela de produtos.
+    // A função calcularVolume foi mantida para que o campo 'volume_m3' também seja exportado.
     $sql_base = "SELECT 
-                    p.codigo, p.nome, p.grupo, p.modelo, p.acabamento, p.familia, 
-                    p.unidade_medida, p.estoque_atual, p.estoque_minimo, p.unidade_medida2,
+                    p.*, 
                     calcularVolume(p.estoque_atual, p.espessura, p.largura, p.comprimento) AS volume_m3
                  FROM produtos p
                  WHERE p.deleted_at IS NULL";
@@ -48,26 +50,24 @@ try {
 
     // Define os cabeçalhos para forçar o download do arquivo
     header('Content-Type: text/csv; charset=utf-8');
-    header('Content-Disposition: attachment; filename="relatorio_estoque_' . date('Y-m-d') . '.csv"');
+    header('Content-Disposition: attachment; filename="relatorio_completo_estoque_' . date('Y-m-d') . '.csv"');
+
+    // OBSERVAÇÃO: Adiciona o BOM para que o Excel entenda o UTF-8 corretamente e exiba os acentos.
+    echo "\xEF\xBB\xBF";
 
     // Abre o fluxo de saída do PHP
     $output = fopen('php://output', 'w');
 
     // Escreve o cabeçalho do CSV
-    fputcsv($output, ['Codigo', 'Produto', 'Grupo', 'Un. Medida', 'Estoque Atual', 'Volume (M3)'], ';');
-
-    // Escreve os dados
+    $header_sent = false;
     while ($row = $result->fetch_assoc()) {
-        $volume_display = (strtoupper($row['unidade_medida2']) === 'M3') ? number_format($row['volume_m3'], 2, ',', '.') : '';
-        
-        fputcsv($output, [
-            $row['codigo'],
-            $row['nome'],
-            $row['grupo'],
-            $row['unidade_medida'],
-            number_format($row['estoque_atual'], 2, ',', '.'),
-            $volume_display
-        ], ';');
+        if (!$header_sent) {
+            // Escreve os nomes das colunas como cabeçalho
+            fputcsv($output, array_keys($row), ';');
+            $header_sent = true;
+        }
+        // Escreve os dados da linha
+        fputcsv($output, $row, ';');
     }
 
     fclose($output);
