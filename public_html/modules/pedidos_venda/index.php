@@ -57,11 +57,24 @@ $pedidos = $conn->execute_query($sql, [$items_per_page, $offset])->fetch_all(MYS
                     <td><?php echo date('d/m/Y', strtotime($pedido['data_pedido'])); ?></td>
                     <td><?php echo $pedido['data_previsao_entrega'] ? date('d/m/Y', strtotime($pedido['data_previsao_entrega'])) : 'N/A'; ?></td>
                     <td class="text-end">R$ <?php echo number_format($pedido['valor_total'], 2, ',', '.'); ?></td>
-                    <td><span class="status-<?php echo strtolower(str_replace(' ', '-', $pedido['status'])); ?>"><?php echo htmlspecialchars($pedido['status']); ?></span></td>
+                    <td class="text-center">
+                        <?php
+                        // OBSERVAÇÃO: Lógica para exibir ícones de status
+                        if ($pedido['status'] === 'Concluido') {
+                            echo '<i class="fas fa-check-circle text-success" title="Concluído" style="font-size: 1.3em;"></i>';
+                        } elseif ($pedido['status'] === 'Cancelado') {
+                            echo '<i class="fas fa-times-circle text-danger" title="Cancelado" style="font-size: 1.3em;"></i>';
+                        } elseif ($pedido['status'] === 'Aprovado') {
+                            echo '<i class="fas fa-thumbs-up text-primary" title="Aprovado" style="font-size: 1.3em;"></i>';
+                        } else {
+                            echo '<span class="status-' . strtolower(str_replace(' ', '-', htmlspecialchars($pedido['status']))) . '">' . htmlspecialchars($pedido['status']) . '</span>';
+                        }
+                        ?>
+                    </td>
                     <td>
                         <a href="editar.php?id=<?php echo $pedido['id']; ?>" class="button small">Gerir Itens</a>
                         <?php
-                        // OBSERVAÇÃO: Lógica para desativar o botão de exclusão
+                        // Lógica para desativar o botão de exclusão
                         $is_deletable = !in_array($pedido['status'], ['Concluido', 'Cancelado']);
                         $disabled_class = $is_deletable ? '' : 'disabled';
                         $onclick_action = $is_deletable ? "return confirm('Tem certeza que deseja excluir este pedido?');" : "return false;";
