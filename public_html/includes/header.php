@@ -4,7 +4,7 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Verifica se o usuário est logado. Se não, redireciona para a página de login.
+// Verifica se o usuário est logado. Se não, redireciona para a pgina de login.
 $current_page_name = basename($_SERVER['PHP_SELF']);
 if (!isset($_SESSION["user_id"]) && $current_page_name != 'login.php') {
     header("location: " . (defined('BASE_URL') ? BASE_URL : '') . "/public/login.php");
@@ -37,13 +37,15 @@ function is_active($modules) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo defined('COMPANY_NAME') ? COMPANY_NAME : 'Sistema de PCP'; ?></title>
+    <title>PCP System</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Seu CSS personalizado -->
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/css/style.css">
+    
+    <link rel="icon" type="image/x-icon" href="/public/img/pcp-sys.png">
 </head>
 <body>
     <header>
@@ -51,7 +53,7 @@ function is_active($modules) {
             <div class="container-fluid">
             
                 <a class="navbar-brand" href="<?php echo BASE_URL; ?>/public/index.php">
-                    <img src="<?php echo BASE_URL; ?>/public/img/logo-jtek.png" height="35" title="Inicio" />
+                    <img src="<?php echo BASE_URL; ?>/public/img/pcp-system1.png" height="35" title="Inicio" />
                 </a>
                 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -90,13 +92,13 @@ function is_active($modules) {
                             </ul>
                         </li>
 
-                        <!-- Menu Produção -->
+                        <!-- Menu Produço -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle <?php echo is_active(['ordens_producao', 'chao_de_fabrica']); ?>" href="#" id="navbarDropdownProducao" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fas fa-industry"></i> Produção
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownProducao">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/ordens_producao/index.php">Ordens de Produção</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/ordens_producao/index.php">Ordens de Produão</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/chao_de_fabrica/index.php">Chão de Fábrica</a></li>
                             </ul>
                         </li>
@@ -104,9 +106,10 @@ function is_active($modules) {
                         <!-- Menu Manutenção -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle <?php echo is_active(['manutencao']); ?>" href="#" id="navbarDropdownManutencao" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-tools"></i> Manutenão
+                                <i class="fas fa-tools"></i> Manutenço
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownManutencao">
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/manutencao/grupos/index.php">Grupos de Máquinas</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/manutencao/index.php">Controle de Paradas</a></li>
                             </ul>
                         </li>
@@ -120,6 +123,19 @@ function is_active($modules) {
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/estoque/index.php">Visão Geral</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/entradas_materiais/index.php">Entrada de Materiais</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/empenho_manual/index.php">Empenho Manual</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- Menu Expedião -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle <?php echo is_active(['expedicao']); ?>" href="#" id="navbarDropdownExpedicao" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-shipping-fast"></i> Expedião
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdownExpedicao">
+                              <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/expedicao/index.php">Visão Geral</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/expedicao/entrada.php">Entrada na Expedição</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/expedicao/saida.php">Saída da Expediço</a></li>
+                                
                             </ul>
                         </li>
 
