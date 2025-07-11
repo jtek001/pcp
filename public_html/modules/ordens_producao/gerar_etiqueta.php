@@ -1,12 +1,12 @@
 <?php
-// modules/ordens_producao/gerar_etiqueta.php
-// Esta página gera uma etiqueta de produção para impressão.
+// modules/chao_de_fabrica/gerar_etiqueta.php
+// Esta pagina gera uma etiqueta de produo para impressão.
 
 // Habilita a exibição de todos os erros PHP para depuração (REMOVER EM PRODUÇÃO)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Define o fuso horário padrão do PHP para Brasília.
+// Define o fuso horário padrão do PHP para Brasilia.
 date_default_timezone_set('America/Sao_Paulo');
 
 // Inclui os arquivos de configuração (para ter acesso à função connectDB e COMPANY_NAME)
@@ -23,7 +23,7 @@ $message_type_from_get = sanitizeInput($_GET['type'] ?? ''); // Tipo da mensagem
 $etiqueta_data = null;
 
 if ($apontamento_id > 0) {
-    // OBSERVAÇÃO: A consulta agora busca as dimensões e chama a função calcularVolume()
+    // A consulta busca as dimensões e chama a função calcularVolume()
     $sql = "SELECT
                 ap.quantidade_produzida,
                 ap.data_apontamento,
@@ -34,6 +34,9 @@ if ($apontamento_id > 0) {
                 p.nome AS produto_nome,
                 p.codigo AS produto_codigo,
                 p.unidade_medida2,
+                p.espessura,
+                p.largura,
+                p.comprimento,
                 m.nome AS maquina_nome,
                 o.nome AS operador_nome,
                 o.matricula AS operador_matricula,
@@ -96,99 +99,110 @@ if (!$etiqueta_data): ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Etiqueta de Produção - Lote <?php echo $lote; ?></title>
+    <!-- Biblioteca JsBarcode para gerar o código de barras -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
-            flex-direction: column; /* Coloca os elementos em coluna */
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 100vh; /* Garante que o corpo ocupe a altura total da viewport */
-            background-color: #f0f0f0; /* Fundo cinza claro para visualização */
+            min-height: 100vh;
+            background-color: #f0f0f0;
         }
         .label-container {
-            width: 10cm; /* 100mm */
-            height: 10cm; /* 100mm */
+            width: 10cm; 
+            height: 10cm; 
             border: 1px solid #000;
-            padding: 0.5cm; /* Margem interna da etiqueta */
-            box-sizing: border-box; /* Inclui padding na largura/altura */
+            padding: 0.5cm;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* Espaça os elementos */
-            background-color: #fff; /* Fundo da etiqueta branco */
-            position: relative; /* Para positioning absoluto de elementos internos */
-            overflow: hidden; /* Garante que nada saia do container */
+            justify-content: space-between;
+            background-color: #fff;
+            position: relative;
+            overflow: hidden;
         }
         .header-section {
             display: flex;
-            flex-direction: column; /* Empresa e Lote um abaixo do outro */
-            align-items: flex-start; /* Alinha tudo à esquerda */
-            margin-bottom: 0.2cm; /* Espaço maior após cabeçalho */
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 0.2cm;
         }
         .company-name {
-            font-size: 0.8cm; /* Aumenta o tamanho da fonte da empresa */
+            font-size: 0.8cm;
             font-weight: bold;
             text-transform: uppercase;
             color: #333;
             text-align: left;
-            margin-bottom: 0.2cm; /* Pula uma linha após o nome da empresa */
+            margin-bottom: 0.2cm;
         }
         .lote-number {
             font-size: 0.6cm;
             font-weight: bold;
-            text-align: left; /* Alinhado à esquerda agora */
-            white-space: nowrap; /* Evita quebra de linha */
+            text-align: left;
+            white-space: nowrap;
         }
         .product-name {
-            font-size: 1cm; /* Fonte grande e destacada para o nome do produto */
+            /* OBSERVAÇÃO: Fonte do nome do produto ligeiramente reduzida */
+            font-size: 0.8cm; 
             font-weight: bold;
-            text-align: left; /* Permanece centralizado */
-            margin: 0.2cm 0; /* Espaçamento vertical */
-            word-break: break-word; /* Quebra palavras longas */
+            text-align: left;
+            margin: 0.2cm 0;
+            word-break: break-word;
         }
         .details-section {
             display: flex;
             flex-direction: column;
-            align-items: flex-start; /* Alinha detalhes à esquerda */
-            flex-grow: 1; /* Permite que esta seção ocupe o espaço restante */
-            justify-content: center; /* Centraliza verticalmente se houver espaço */
+            align-items: flex-start;
+            flex-grow: 1;
+            justify-content: center;
         }
         .detail-row {
-            display: flex; /* Mantém label e valor na mesma linha */
-            justify-content: flex-start; /* Alinha a linha de detalhe à esquerda */
+            display: flex;
+            justify-content: flex-start;
             margin-bottom: 0.1cm;
-            width: 100%; /* Ocupa a largura total para alinhamento */
+            width: 100%;
         }
         .detail-label {
             font-weight: bold;
-            font-size: 0.5cm;
+            font-size: 0.4cm;
             white-space: nowrap;
-            margin-right: 0.2cm; /* Espaço entre label e valor */
-            text-align: left; /* Garante alinhamento à esquerda */
+            margin-right: 0.2cm;
+            text-align: left;
         }
         .detail-value {
-            font-size: 0.5cm;
-            text-align: left; /* Alinha o valor à esquerda */
-            word-break: break-all; /* Quebra palavras muito longas */
+            font-size: 0.4cm;
+            text-align: left;
+            word-break: break-all;
+        }
+        .footer-section {
+            text-align: center;
+           
+        }
+        #barcode {
+            width: 100%;
+            height: 60px;
         }
         
         @page {
-            size: 10cm 10cm; /* Define o tamanho da página de impressão */
-            margin: 0; /* Remove margens da página */
+            size: 10cm 10cm;
+            margin: 0;
         }
         @media print {
             body {
                 margin: 0;
                 padding: 0;
-                display: block; /* Garante que o corpo não seja flexbox na impressão */
-                background-color: #fff; /* Remove fundo cinza na impressão */
+                display: block;
+                background-color: #fff;
             }
             .label-container {
-                border: none; /* Remove a borda da caixa na impressão se desejar */
-                box-shadow: none; /* Remove a sombra na impressão */
-                page-break-after: always; /* Garante que cada etiqueta esteja em uma nova página se houver mais de uma */
+                border: none;
+                box-shadow: none;
+                page-break-after: always;
                 width: 10cm;
                 height: 10cm;
                 padding: 0.5cm;
@@ -202,7 +216,7 @@ if (!$etiqueta_data): ?>
 <body onload="window.print()">
     <div class="label-container">
         <div class="header-section">
-            <div class="company-name"><img src="../../public/img/logo-jtek.png" height="40" /></div>
+            <div class="company-name"><img src="../../public/img/logo-etiq.png" height="40" /></div>
             <div class="lote-number">Lote: <?php echo $lote; ?></div>
         </div>
 
@@ -223,10 +237,7 @@ if (!$etiqueta_data): ?>
                 <span class="detail-label">Qtde:</span>
                 <span class="detail-value">
                     <?php 
-                    // Exibe a quantidade formatada
                     echo number_format($etiqueta_data['quantidade_produzida'], 2, ',', '.'); 
-
-                    // OBSERVAÇÃO: Exibe o volume apenas se for maior que zero
                     if ($etiqueta_data['volume_calculado'] > 0) {
                         echo ' <span style="font-style: italic;">(' . number_format($etiqueta_data['volume_calculado'], 2, ',', '.') . ' M³)</span>';
                     }
@@ -238,13 +249,31 @@ if (!$etiqueta_data): ?>
                 <span class="detail-value"><?php echo date('d/m/Y H:i', strtotime($etiqueta_data['data_apontamento'])); ?></span>
             </div>
         </div>
+
+        <div class="footer-section">
+            <svg id="barcode"></svg>
+        </div>
     </div>
     <div class="no-print" style="text-align: center; margin-top: 20px;">
         <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Imprimir Novamente</button>
-        <?php if ($op_id_from_get > 0): // Botão para voltar apenas se houver OP ID ?>
-            <a href="<?php echo BASE_URL; ?>/modules/ordens_producao/apontar.php?id=<?php echo htmlspecialchars($op_id_from_get); ?>&message=<?php echo urlencode($message_from_get); ?>&type=<?php echo urlencode($message_type_from_get); ?>" style="padding: 10px 20px; font-size: 16px; cursor: pointer; text-decoration: none; background-color: #007bff; color: white; border-radius: 5px; margin-left: 10px;">Voltar à OP</a>
+        <?php if ($op_id_from_get > 0): ?>
+            <a href="<?php echo BASE_URL; ?>/modules/ordens_producao/apontar.php?id=<?php echo htmlspecialchars($op_id_from_get); ?>" style="padding: 10px 20px; font-size: 16px; cursor: pointer; text-decoration: none; background-color: #007bff; color: white; border-radius: 5px; margin-left: 10px;">Voltar à OP</a>
         <?php endif; ?>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loteNumero = "<?php echo $lote; ?>";
+            if (loteNumero) {
+                JsBarcode("#barcode", loteNumero, {
+                    format: "CODE128",
+                    lineColor: "#000",
+                    width: 3.5,
+                    height: 80,
+                    displayValue: true
+                });
+            }
+        });
+    </script>
 </body>
 </html>
 <?php endif; ?>
