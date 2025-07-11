@@ -1,10 +1,10 @@
 <?php
-// /public/index.php - Página principal (Dashboard)
+// /public/index.php - Pgina principal (Dashboard)
 
 // Inicia a sessão para verificar o login do usuário
 session_start();
 
-// Define o fuso horário para garantir a consistência das datas
+// Define o fuso horrio para garantir a consistência das datas
 date_default_timezone_set('America/Sao_Paulo');
 
 // --- OBSERVAÇÃO: VERIFICAÇÃO DE CAMINHOS ---
@@ -15,7 +15,7 @@ $config_path = __DIR__ . '/../config/database.php';
 $header_path = __DIR__ . '/../includes/header.php';
 
 if (!file_exists($config_path)) {
-    die("Erro Crítico: O ficheiro de configuração (database.php) não foi encontrado. Caminho verificado: " . $config_path);
+    die("Erro Crítico: O ficheiro de configuração (database.php) no foi encontrado. Caminho verificado: " . $config_path);
 }
 require_once $config_path;
 
@@ -26,7 +26,7 @@ if (!file_exists($header_path)) {
 // Conecta ao banco de dados
 $conn = connectDB();
 
-// A lógica de login e o cabeçalho serão carregados após a conexão
+// A lgica de login e o cabeçalho serão carregados após a conexão
 require_once $header_path;
 
 
@@ -37,7 +37,7 @@ $today_date = date('Y-m-d');
 $sql_ops_ativas = "SELECT COUNT(id) as total FROM ordens_producao WHERE status IN ('pendente', 'em_producao') AND deleted_at IS NULL";
 $total_ops_ativas = $conn->query($sql_ops_ativas)->fetch_assoc()['total'] ?? 0;
 
-// Máquinas operacionais e paradas
+// Mquinas operacionais e paradas
 $sql_maquinas_status = "SELECT status, COUNT(id) as total FROM maquinas WHERE deleted_at IS NULL GROUP BY status";
 $maquinas_status_result = $conn->query($sql_maquinas_status)->fetch_all(MYSQLI_ASSOC);
 $total_maquinas_operacionais = 0;
@@ -125,7 +125,7 @@ $dados_grafico_m3 = array_column($dados_agregados, 'M3');
                 <div class="card-body text-center">
                     <i class="fas fa-industry fa-3x text-primary mb-3"></i>
                     <h5 class="card-title">Ordens de Produção</h5>
-                    <p class="card-text text-muted">Gere e acompanhe as ordens de produção para o chão de fábrica.</p>
+                    <p class="card-text text-muted">Gere e acompanhe as ordens de produção para o chão de fbrica.</p>
                     <a href="<?php echo BASE_URL; ?>/modules/ordens_producao/index.php" class="button">Acessar OPs</a>
                 </div>
             </div>
@@ -155,11 +155,24 @@ $dados_grafico_m3 = array_column($dados_agregados, 'M3');
                 <div class="card-body text-center">
                     <i class="fas fa-boxes-stacked fa-3x text-primary mb-3"></i>
                     <h5 class="card-title">Estoques</h5>
-                    <p class="card-text text-muted">Visualize e gerencie os níveis de estoque de todos os itens.</p>
+                    <p class="card-text text-muted">Visualize e gerencie os níveis de estoque de produtos.</p>
                     <a href="<?php echo BASE_URL; ?>/modules/estoque/index.php" class="button">Acessar Estoque</a>
                 </div>
             </div>
         </div>
+        
+         <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-boxes-stacked fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Expedição</h5>
+                    <p class="card-text text-muted">Gerencie a entrada e saída de produtos acabados.</p>
+                    <a href="<?php echo BASE_URL; ?>/modules/expedicao/index.php" class="button">Acessar Expedição</a>
+                </div>
+            </div>
+        </div>
+        
+        
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="card h-100">
                 <div class="card-body text-center">
@@ -179,7 +192,7 @@ $dados_grafico_m3 = array_column($dados_agregados, 'M3');
             <div class="indicator-card h-100">
                 <h3>OPs Ativas</h3>
                 <p class="indicator-number"><?php echo $total_ops_ativas; ?></p>
-                <p class="indicator-description">Ordens pendentes ou em produção.</p>
+                <p class="indicator-description">Ordens pendentes ou em produão.</p>
             </div>
         </div>
         <div class="col-md-4 mb-4">
@@ -229,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const chartData = {
             labels: labels,
             datasets: [{
-                label: 'Produção Diária (M³)',
+                label: 'Produão Diária (M³)',
                 data: dataM3,
                 backgroundColor: 'rgba(41, 128, 185, 0.7)',
                 borderColor: 'rgba(41, 128, 185, 1)',
