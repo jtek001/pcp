@@ -11,7 +11,7 @@ define('DB_NAME', 'pcp_system'); // Nome do seu banco de dados
 // Se a pasta 'pcp_system' estiver diretamente em 'htdocs' (ex: http://localhost/pcp_system/),
 // ento a BASE_URL deve ser '/pcp_system'.
 // Se seus arquivos estiverem na raiz do 'htdocs' (ex: http://localhost/), então a BASE_URL deve ser '/'.
-define('BASE_URL', 'https://pcp.jtekinfo.com.br'); // AJUSTE AQUI conforme a sua configuração
+define('BASE_URL', 'https://pcp.pcpsystem.com.br'); // AJUSTE AQUI conforme a sua configuração
 
 // Define o nome da empresa
 define('COMPANY_NAME', 'JtekInfo'); // Nome da empresa para uso global
