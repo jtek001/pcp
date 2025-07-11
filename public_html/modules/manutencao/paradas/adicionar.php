@@ -1,7 +1,7 @@
 <?php
 ob_start();
 session_start();
-// OBSERVAÇÃO: Fuso horário definido para garantir a hora local correta.
+// OBSERVAÇÃO: Fuso horrio definido para garantir a hora local correta.
 date_default_timezone_set('America/Sao_Paulo');
 require_once __DIR__ . '/../../../config/database.php';
 
@@ -10,7 +10,7 @@ $conn = connectDB();
 // Busca dados para os dropdowns
 $maquinas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL ORDER BY nome")->fetch_all(MYSQLI_ASSOC);
 $motivos = $conn->query("SELECT id, nome, codigo, grupo FROM motivos_parada WHERE deleted_at IS NULL ORDER BY codigo ASC")->fetch_all(MYSQLI_ASSOC);
-$operadores = $conn->query("SELECT id, nome FROM operadores WHERE deleted_at IS NULL ORDER BY nome")->fetch_all(MYSQLI_ASSOC);
+$operadores = $conn->query("SELECT id, nome FROM operadores WHERE deleted_at IS NULL AND ativo = 1 ORDER BY nome")->fetch_all(MYSQLI_ASSOC);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $maquina_id = filter_input(INPUT_POST, 'maquina_id', FILTER_VALIDATE_INT);
