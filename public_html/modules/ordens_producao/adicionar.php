@@ -52,17 +52,18 @@ function gerarOpsFilhasEReservas($conn, $op_pai_id, $produto_pai_id, $quantidade
                     if ($necessidade_liquida > 0) {
                         // LÓGICA PARA HERDAR DADOS DA OP MÃE
                         $maquina_filha_id = null;
-                        $sql_roteiro_etapa = "SELECT centro_trabalho_id FROM roteiro_etapas WHERE roteiro_id = ? ORDER BY sequencia ASC LIMIT 1";
+                        $sql_roteiro_etapa = "SELECT grupo_id FROM roteiro_etapas WHERE roteiro_id = ? ORDER BY sequencia ASC LIMIT 1";
                         $result_etapa = $conn->execute_query($sql_roteiro_etapa, [$roteiro_check['id']]);
                         if ($etapa = $result_etapa->fetch_assoc()) {
-                            $maquina_filha_id = $etapa['centro_trabalho_id'];
+                            // Este ID é de um grupo, não de uma máquina. A OP filha pode ser associada ao grupo
+                            $maquina_filha_id = $etapa['grupo_id'];
                         }
 
                         $data_conclusao_filha = $data_conclusao_pai ? date('Y-m-d', strtotime($data_conclusao_pai . ' -2 days')) : null;
                         $numero_op_filha = generateUniqueOpNumber($conn);
                         $data_emissao_filha = date('Y-m-d');
                         
-                        $params_op_filha = [$op_mae_id, $numero_op_filha, $numero_pedido_pai, $material_id, $maquina_filha_id, $necessidade_liquida, $data_emissao_filha, $data_conclusao_filha];
+                        $params_op_filha = [$op_pai_id, $numero_op_filha, $numero_pedido_pai, $material_id, $maquina_filha_id, $necessidade_liquida, $data_emissao_filha, $data_conclusao_filha];
                         $conn->execute_query("INSERT INTO ordens_producao (op_mae_id, numero_op, numero_pedido, produto_id, maquina_id, quantidade_produzir, data_emissao, data_prevista_conclusao, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pendente')", $params_op_filha);
                         $op_filha_id = $conn->insert_id;
                         $ops_criadas++;
@@ -83,15 +84,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $temp_numero_op = sanitizeInput($_POST['numero_op'] ?? '');
     $temp_numero_pedido = sanitizeInput($_POST['numero_pedido'] ?? '');
     $temp_produto_id = filter_input(INPUT_POST, 'produto_id_hidden', FILTER_VALIDATE_INT);
-    $temp_maquina_id = filter_input(INPUT_POST, 'maquina_id', FILTER_VALIDATE_INT) ?: null;
+    $temp_grupo_id = filter_input(INPUT_POST, 'grupo_id', FILTER_VALIDATE_INT) ?: null;
     $temp_quantidade_produzir = (float) sanitizeInput($_POST['quantidade_produzir'] ?? 0.0);
     $temp_data_emissao = sanitizeInput($_POST['data_emissao'] ?? '');
     $temp_data_prevista_conclusao = !empty($_POST['data_prevista_conclusao']) ? sanitizeInput($_POST['data_prevista_conclusao']) : null;
     $temp_observacoes = sanitizeInput($_POST['observacoes'] ?? '');
 
-    // OBSERVAÇÃO: Validação agora inclui o número do pedido
+    // OBSERVAÇÃO: Validação agora inclui o número do pedido. A opção "avulso" foi removida.
     if (empty($temp_numero_op) || empty($temp_produto_id) || empty($temp_quantidade_produzir) || empty($temp_data_emissao) || empty($temp_numero_pedido)) {
-        $_SESSION['message'] = "Todos os campos obrigatórios devem ser preenchidos, incluindo o Número do Pedido.";
+        $_SESSION['message'] = "Todos os campos obrigatórios devem ser preenchidos, incluindo a seleção de um Pedido de Venda aprovado.";
         $_SESSION['message_type'] = "error";
         header("Location: adicionar.php");
         exit();
@@ -99,11 +100,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $conn->begin_transaction();
     try {
-        $params_insert_op = [$temp_numero_op, $temp_numero_pedido, $temp_produto_id, $temp_maquina_id, $temp_quantidade_produzir, $temp_data_emissao, $temp_data_prevista_conclusao, $temp_observacoes];
-        $conn->execute_query("INSERT INTO ordens_producao (numero_op, numero_pedido, produto_id, maquina_id, quantidade_produzir, data_emissao, data_prevista_conclusao, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", $params_insert_op);
+        if (!empty($temp_numero_pedido)) {
+            $conn->execute_query("INSERT IGNORE INTO pedidos_venda_lookup (numero_pedido) VALUES (?)", [$temp_numero_pedido]);
+        }
+        
+        $params_insert_op = [$temp_numero_op, $temp_numero_pedido, $temp_produto_id, $temp_grupo_id, $temp_quantidade_produzir, $temp_data_emissao, $temp_data_prevista_conclusao, $temp_observacoes];
+        $conn->execute_query("INSERT INTO ordens_producao (numero_op, numero_pedido, produto_id, grupo_id, quantidade_produzir, data_emissao, data_prevista_conclusao, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", $params_insert_op);
         $op_mae_id = $conn->insert_id;
         
-        // Chama a função recursiva para iniciar o processo de MRP
         $ops_filhas_criadas = gerarOpsFilhasEReservas($conn, $op_mae_id, $temp_produto_id, $temp_quantidade_produzir, $temp_numero_pedido, $temp_data_prevista_conclusao);
 
         $conn->commit();
@@ -128,7 +132,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 require_once __DIR__ . '/../../includes/header.php';
 
-$maquinas_ativas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL AND status = 'operacional' ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
 $sql_pedidos = "SELECT pv.numero_pedido, fc.nome as cliente_nome 
                 FROM pedidos_venda pv 
                 JOIN fornecedores_clientes_lookup fc ON pv.cliente_id = fc.id 
@@ -177,12 +180,9 @@ $default_data_prevista = date('Y-m-d', strtotime('+7 days'));
     </div>
 
     <div class="form-group">
-        <label for="maquina_id">Máquina Ideal:</label>
-        <select id="maquina_id" name="maquina_id">
-            <option value="">Selecione uma Máquina</option>
-            <?php foreach ($maquinas_ativas as $maquina): ?>
-                <option value="<?php echo htmlspecialchars($maquina['id']); ?>"><?php echo htmlspecialchars($maquina['nome']); ?></option>
-            <?php endforeach; ?>
+        <label for="grupo_id">Grupo de Máquinas:</label>
+        <select id="grupo_id" name="grupo_id">
+            <option value="">Selecione um produto para ver os grupos</option>
         </select>
     </div>
 
@@ -218,12 +218,12 @@ $default_data_prevista = date('Y-m-d', strtotime('+7 days'));
         const produtoCodigoInput = document.getElementById('produto_codigo_search');
         const produtoIdHiddenInput = document.getElementById('produto_id_hidden');
         const produtoNomeDisplay = document.getElementById('produto_nome_display');
-        const maquinaSelect = document.getElementById('maquina_id');
+        const grupoSelect = document.getElementById('grupo_id');
 
         function resetProductFields() {
             produtoIdHiddenInput.value = '';
             produtoNomeDisplay.value = '';
-            maquinaSelect.value = '';
+            grupoSelect.innerHTML = '<option value="">Selecione um produto para ver os grupos</option>';
         }
 
         produtoCodigoInput.addEventListener('blur', function() {
@@ -233,7 +233,7 @@ $default_data_prevista = date('Y-m-d', strtotime('+7 days'));
                 return;
             }
             
-            fetch(`${baseUrl}/modules/ordens_producao/ajax_get_produto_roteiro.php?codigo=${encodeURIComponent(codigo)}`)
+            fetch(`${baseUrl}/modules/ordens_producao/ajax_get_produto_com_roteiro.php?codigo=${encodeURIComponent(codigo)}`)
                 .then(response => {
                     if (!response.ok) return response.json().then(err => Promise.reject(err));
                     return response.json();
@@ -241,8 +241,17 @@ $default_data_prevista = date('Y-m-d', strtotime('+7 days'));
                 .then(data => {
                     produtoIdHiddenInput.value = data.id;
                     produtoNomeDisplay.value = data.nome;
-                    if (data.maquina_id) {
-                        maquinaSelect.value = data.maquina_id;
+
+                    grupoSelect.innerHTML = '<option value="">Selecione um grupo...</option>';
+                    if (data.grupos && data.grupos.length > 0) {
+                        data.grupos.forEach(grupo => {
+                            const option = document.createElement('option');
+                            option.value = grupo.id;
+                            option.textContent = grupo.nome_grupo;
+                            grupoSelect.appendChild(option);
+                        });
+                    } else {
+                        grupoSelect.innerHTML = '<option value="">Nenhum grupo de trabalho encontrado para este roteiro</option>';
                     }
                 })
                 .catch(error => {
