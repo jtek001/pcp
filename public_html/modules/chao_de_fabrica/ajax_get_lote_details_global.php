@@ -17,7 +17,7 @@ if (empty($lote_numero)) {
     exit;
 }
 
-// ALTERAÇÃO: A busca agora é global, por número de lote exato, e apenas em lotes não deletados e com saldo.
+// A consulta agora é mais simples.
 $sql = "SELECT 
             ap.id, 
             ap.lote_numero, 
