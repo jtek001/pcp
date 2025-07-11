@@ -74,16 +74,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// --- Lógica para buscar os dados e exibir o formulrio (GET) ---
+// --- Lógica para buscar os dados e exibir o formulário (GET) ---
 require_once __DIR__ . '/../../includes/header.php';
 
-$sql_get = "SELECT * FROM apontamentos_producao WHERE id = ?";
+$sql_get = "SELECT ap.*, op.grupo_id 
+            FROM apontamentos_producao ap 
+            JOIN ordens_producao op ON ap.ordem_producao_id = op.id
+            WHERE ap.id = ?";
 $apontamento = $conn->execute_query($sql_get, [$apontamento_id])->fetch_assoc();
 if (!$apontamento) {
     die("Apontamento não encontrado.");
 }
 
-$maquinas_ativas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
+$grupo_id_op = $apontamento['grupo_id'];
+$maquinas_do_grupo = [];
+if ($grupo_id_op) {
+    $sql_maquinas = "SELECT m.id, m.nome FROM maquinas m JOIN maquina_grupo_associacao mga ON m.id = mga.maquina_id WHERE mga.grupo_id = ? AND m.status = 'operacional' AND m.deleted_at IS NULL ORDER BY m.nome";
+    $maquinas_do_grupo = $conn->execute_query($sql_maquinas, [$grupo_id_op])->fetch_all(MYSQLI_ASSOC);
+    $nome_grupo = $conn->execute_query("SELECT nome_grupo FROM grupos_maquinas WHERE id = ?", [$grupo_id_op])->fetch_assoc()['nome_grupo'] ?? 'N/A';
+} else {
+    $nome_grupo = 'Nenhum grupo definido na OP';
+}
+
+
 $operadores = $conn->query("SELECT id, nome, matricula FROM operadores WHERE deleted_at IS NULL AND ativo = 1 ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
 ?>
 
@@ -98,9 +111,15 @@ $operadores = $conn->query("SELECT id, nome, matricula FROM operadores WHERE del
     <input type="hidden" name="ordem_producao_id" value="<?php echo $apontamento['ordem_producao_id']; ?>">
     
     <div class="form-group">
+        <label>Grupo de Máquinas Designado:</label>
+        <input type="text" class="form-control" value="<?php echo htmlspecialchars($nome_grupo); ?>" readonly>
+    </div>
+
+    <div class="form-group">
         <label for="maquina_id">Máquina Utilizada:</label>
         <select id="maquina_id" name="maquina_id" required>
-            <?php foreach ($maquinas_ativas as $maquina): ?>
+            <option value="">Selecione a máquina do grupo</option>
+            <?php foreach ($maquinas_do_grupo as $maquina): ?>
                 <option value="<?php echo $maquina['id']; ?>" <?php echo ($apontamento['maquina_id'] == $maquina['id']) ? 'selected' : ''; ?>>
                     <?php echo htmlspecialchars($maquina['nome']); ?>
                 </option>
