@@ -16,17 +16,17 @@ if (!$conn) {
     die("Falha na conexão com o banco de dados.");
 }
 
-// Busca os detalhes da Ordem de Produção, incluindo o nome do cliente
+// Busca os detalhes da Ordem de Produção, incluindo o nome do cliente e do grupo de máquinas
 $sql_op = "SELECT 
                 op.id, op.numero_op, op.numero_pedido, op.quantidade_produzir, op.data_emissao, 
                 op.data_prevista_conclusao, op.status, op.observacoes,
                 p.nome as produto_nome, p.codigo as produto_codigo, p.unidade_medida2, 
                 p.espessura, p.largura, p.comprimento,
-                m.nome as maquina_nome,
+                gm.nome_grupo as linha_nome,
                 fc.nome as cliente_nome
            FROM ordens_producao op
            JOIN produtos p ON op.produto_id = p.id
-           LEFT JOIN maquinas m ON op.maquina_id = m.id
+           LEFT JOIN grupos_maquinas gm ON op.grupo_id = gm.id
            LEFT JOIN pedidos_venda pv ON op.numero_pedido = pv.numero_pedido
            LEFT JOIN fornecedores_clientes_lookup fc ON pv.cliente_id = fc.id
            WHERE op.id = ?";
@@ -77,7 +77,7 @@ $conn->close();
     <title>Pedido <?php echo htmlspecialchars($op['numero_pedido']); ?></title>
     <style>
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: #fff; color: #333; font-size: 12px; }
-        .container { width: 95%; max-width: 800px; margin: 15px auto; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .container { width: 95%; max-width: 800px; margin: 20px auto; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
         h1 { text-align: center; color: #222; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 5px; }
         .sub-header { text-align: center; margin-top: -10px; margin-bottom: 20px; font-size: 14px; color: #555;}
         .header-info { display: flex; justify-content: space-between; margin-bottom: 20px; }
@@ -94,33 +94,11 @@ $conn->close();
         .footer { display: flex; justify-content: space-between; text-align: center; }
         .footer .signature { border-top: 1px solid #333; padding-top: 10px; width: 40%; }
         .print-timestamp { text-align: center; font-style: italic; color: #666; margin-top: 30px; font-size: 10px; }
-        
         @media print {
-            body { 
-                font-size: 10pt; 
-                margin: 0; 
-                padding: 0; 
-            }
-            /* CORREÇÃO: Estilos para impressão */
-            .container {
-                box-shadow: none;
-                border: none;
-                width: 100%; /* Ocupa a largura total da página */
-                max-width: 100%;
-                margin: 0; /* Remove margens automáticas */
-                padding: 1cm; /* Adiciona uma margem de impressão */
-                box-sizing: border-box; /* Garante que o padding não aumente a largura */
-            }
-            .no-print { 
-                display: none; 
-            }
-            .page-footer-container { 
-                position: fixed; 
-                bottom: 1cm; 
-                left: 1cm; 
-                right: 1cm; 
-                width: auto;
-            }
+            body { font-size: 10pt; margin: 0; padding: 0; }
+            .container { box-shadow: none; border: none; width: 100%; max-width: 100%; margin: 0; padding: 1cm; box-sizing: border-box; }
+            .no-print { display: none; }
+            .page-footer-container { position: fixed; bottom: 1cm; left: 1cm; right: 1cm; width: auto; }
         }
     </style>
 </head>
@@ -131,7 +109,6 @@ $conn->close();
         <div class="header-info">
             <div>
                 <p><strong>Pedido:</strong> <?php echo htmlspecialchars($op['numero_pedido']); ?></p>
-                <!-- OBSERVAÇÃO: Campo do cliente adicionado -->
                 <p><strong>Cliente:</strong> <?php echo htmlspecialchars($op['cliente_nome'] ?? 'N/A'); ?></p>
                 <p><strong>Status:</strong> <?php echo strtoupper(htmlspecialchars($op['status'])); ?>
                   
@@ -162,7 +139,7 @@ $conn->close();
 
         <div class="info-section">
             <h2>Detalhes da Produção</h2>
-            <p><strong>Máquina a produzir:</strong> <?php echo htmlspecialchars($op['maquina_nome'] ?? 'Não especificada'); ?></p>
+            <p><strong>Linha a produzir:</strong> <?php echo htmlspecialchars($op['linha_nome'] ?? 'Não especificada'); ?></p>
             <p><strong>Observações:</strong> <br><?php echo nl2br(htmlspecialchars($op['observacoes'])); ?></p>
         </div>
 
