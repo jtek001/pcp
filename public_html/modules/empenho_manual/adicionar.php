@@ -5,7 +5,7 @@
 // Inicia a sessão para usar variáveis de sessão
 session_start();
 
-// Habilita a exibião de todos os erros PHP para depuração (REMOVER EM PRODUÇO)
+// Habilita a exibião de todos os erros PHP para depuraço (REMOVER EM PRODUÇO)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -33,7 +33,7 @@ if (isset($_SESSION['message'])) {
 
 // Busca operadores para o dropdown (responsável pela movimentação)
 $operadores = [];
-$sql_operadores = "SELECT id, nome, matricula FROM operadores WHERE deleted_at IS NULL ORDER BY nome ASC";
+$sql_operadores = "SELECT id, nome, matricula FROM operadores WHERE ativo = 1 and deleted_at IS NULL ORDER BY nome ASC";
 try {
     $result_operadores = $conn->execute_query($sql_operadores);
     if ($result_operadores) {
@@ -263,7 +263,7 @@ $default_data_hora_mov = date('Y-m-d\TH:i');
     </div>
 
     <div class="form-group">
-        <label for="op_search">Ordem de Produção (OP):</label>
+        <label for="op_search">Ordem de Produão (OP):</label>
         <input type="text" id="op_search" list="op_options" value="<?php echo $initial_op_search_value; ?>" required placeholder="Digite para buscar OP">
         <datalist id="op_options">
             <!-- Opções preenchidas via JavaScript -->
@@ -467,16 +467,16 @@ $default_data_hora_mov = date('Y-m-d\TH:i');
         empenhoForm.addEventListener('submit', function(event) {
             // Verifica se os campos hidden de ID esto preenchidos
             if (!produtoIdHiddenInput.value) {
-                alert('Por favor, selecione um Produto/Material válido da lista de sugestões.');
+                alert('Por favor, selecione um Produto/Material válido da lista de sugestes.');
                 event.preventDefault(); // Impede o envio do formulário
                 return;
             }
             if (!opIdHiddenInput.value) {
-                alert('Por favor, selecione uma Ordem de Produão (OP) válida da lista de sugestões.');
+                alert('Por favor, selecione uma Ordem de Produo (OP) válida da lista de sugestões.');
                 event.preventDefault(); // Impede o envio do formulário
                 return;
             }
-            // Adicione mais validações de outros campos 'required' aqui, se necessário
+            // Adicione mais validaçes de outros campos 'required' aqui, se necessário
         });
     });
 
