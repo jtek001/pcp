@@ -15,19 +15,19 @@ if (!$etapa_id) {
     exit();
 }
 
-// Lógica para processar a atualização
+// Lógica para processar a atualização do formulário
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $roteiro_id = filter_input(INPUT_POST, 'roteiro_id', FILTER_VALIDATE_INT);
     $sequencia = filter_input(INPUT_POST, 'sequencia', FILTER_VALIDATE_INT);
-    $centro_trabalho_id = filter_input(INPUT_POST, 'centro_trabalho_id', FILTER_VALIDATE_INT);
+    $grupo_id = filter_input(INPUT_POST, 'grupo_id', FILTER_VALIDATE_INT);
     $descricao_operacao = sanitizeInput($_POST['descricao_operacao']);
     $tempo_setup = filter_input(INPUT_POST, 'tempo_setup_min', FILTER_VALIDATE_FLOAT);
     $tempo_producao = filter_input(INPUT_POST, 'tempo_producao_min', FILTER_VALIDATE_FLOAT);
 
-    if ($roteiro_id && $sequencia && $centro_trabalho_id && !empty($descricao_operacao)) {
+    if ($roteiro_id && $sequencia && $grupo_id && !empty($descricao_operacao)) {
         try {
-            $sql = "UPDATE roteiro_etapas SET sequencia = ?, centro_trabalho_id = ?, descricao_operacao = ?, tempo_setup_min = ?, tempo_producao_min = ? WHERE id = ?";
-            $conn->execute_query($sql, [$sequencia, $centro_trabalho_id, $descricao_operacao, $tempo_setup, $tempo_producao, $etapa_id]);
+            $sql = "UPDATE roteiro_etapas SET sequencia = ?, grupo_id = ?, descricao_operacao = ?, tempo_setup_min = ?, tempo_producao_min = ? WHERE id = ?";
+            $conn->execute_query($sql, [$sequencia, $grupo_id, $descricao_operacao, $tempo_setup, $tempo_producao, $etapa_id]);
             $_SESSION['message'] = "Etapa atualizada com sucesso!";
             $_SESSION['message_type'] = "success";
             header("Location: etapas.php?roteiro_id=" . $roteiro_id);
@@ -62,8 +62,8 @@ try {
     exit();
 }
 
-// Busca máquinas para o dropdown
-$maquinas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL ORDER BY nome")->fetch_all(MYSQLI_ASSOC);
+// Busca grupos de máquinas para o dropdown
+$grupos_maquinas = $conn->query("SELECT id, nome_grupo FROM grupos_maquinas ORDER BY nome_grupo ASC")->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <div class="container mt-4">
@@ -85,12 +85,12 @@ $maquinas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL
             <input type="number" name="sequencia" class="form-control" value="<?php echo htmlspecialchars($etapa['sequencia']); ?>" required>
         </div>
         <div class="form-group">
-            <label for="centro_trabalho_id">Máquina*</label>
-            <select name="centro_trabalho_id" class="form-select" required>
+            <label for="grupo_id">Grupo de Máquinas (Centro de Trabalho)*</label>
+            <select name="grupo_id" class="form-select" required>
                 <option value="">Selecione...</option>
-                <?php foreach($maquinas as $maquina): ?>
-                    <option value="<?php echo $maquina['id']; ?>" <?php echo ($etapa['centro_trabalho_id'] == $maquina['id']) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($maquina['nome']); ?>
+                <?php foreach($grupos_maquinas as $grupo): ?>
+                    <option value="<?php echo $grupo['id']; ?>" <?php echo ($etapa['grupo_id'] == $grupo['id']) ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($grupo['nome_grupo']); ?>
                     </option>
                 <?php endforeach; ?>
             </select>
@@ -108,7 +108,7 @@ $maquinas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL
             <input type="number" name="tempo_producao_min" class="form-control" step="0.01" value="<?php echo htmlspecialchars($etapa['tempo_producao_min']); ?>">
         </div>
         <div class="form-group full-width" style="text-align:center;">
-            <button type="submit" class="button submit">Atualizar Etapa</button>
+            <button type="submit" class="button submit">Salvar Alterações</button>
         </div>
     </form>
     <?php endif; ?>
