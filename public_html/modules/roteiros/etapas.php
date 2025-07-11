@@ -17,15 +17,17 @@ if (!$roteiro_id) {
 // Lógica para adicionar uma nova etapa
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_etapa'])) {
     $sequencia = filter_input(INPUT_POST, 'sequencia', FILTER_VALIDATE_INT);
-    $centro_trabalho_id = filter_input(INPUT_POST, 'centro_trabalho_id', FILTER_VALIDATE_INT);
+    // OBSERVAÇÃO: Campo alterado para grupo_id
+    $grupo_id = filter_input(INPUT_POST, 'grupo_id', FILTER_VALIDATE_INT);
     $descricao_operacao = sanitizeInput($_POST['descricao_operacao']);
     $tempo_setup = filter_input(INPUT_POST, 'tempo_setup_min', FILTER_VALIDATE_FLOAT);
     $tempo_producao = filter_input(INPUT_POST, 'tempo_producao_min', FILTER_VALIDATE_FLOAT);
 
-    if ($sequencia && $centro_trabalho_id && !empty($descricao_operacao)) {
+    if ($sequencia && $grupo_id && !empty($descricao_operacao)) {
         try {
-            $sql = "INSERT INTO roteiro_etapas (roteiro_id, sequencia, centro_trabalho_id, descricao_operacao, tempo_setup_min, tempo_producao_min) VALUES (?, ?, ?, ?, ?, ?)";
-            $conn->execute_query($sql, [$roteiro_id, $sequencia, $centro_trabalho_id, $descricao_operacao, $tempo_setup, $tempo_producao]);
+            // OBSERVAÇÃO: A inserço agora usa grupo_id
+            $sql = "INSERT INTO roteiro_etapas (roteiro_id, sequencia, grupo_id, descricao_operacao, tempo_setup_min, tempo_producao_min) VALUES (?, ?, ?, ?, ?, ?)";
+            $conn->execute_query($sql, [$roteiro_id, $sequencia, $grupo_id, $descricao_operacao, $tempo_setup, $tempo_producao]);
             $_SESSION['message'] = "Etapa adicionada com sucesso!";
             $_SESSION['message_type'] = "success";
         } catch (mysqli_sql_exception $e) {
@@ -44,7 +46,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_etapa'])) {
 if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
     $etapa_id = (int)$_GET['delete_id'];
     try {
-        // Usando soft delete
         $sql_delete = "UPDATE roteiro_etapas SET deleted_at = NOW() WHERE id = ?";
         $conn->execute_query($sql_delete, [$etapa_id]);
         $_SESSION['message'] = "Etapa excluída com sucesso.";
@@ -69,15 +70,15 @@ if (!$roteiro_details) {
 }
 
 // Busca as etapas existentes para este roteiro
-$sql_etapas = "SELECT re.*, m.nome as maquina_nome 
+$sql_etapas = "SELECT re.*, gm.nome_grupo 
                FROM roteiro_etapas re
-               JOIN maquinas m ON re.centro_trabalho_id = m.id
+               JOIN grupos_maquinas gm ON re.grupo_id = gm.id
                WHERE re.roteiro_id = ? AND re.deleted_at IS NULL
                ORDER BY re.sequencia ASC";
 $etapas = $conn->execute_query($sql_etapas, [$roteiro_id])->fetch_all(MYSQLI_ASSOC);
 
-// Busca máquinas para o dropdown do formulário
-$maquinas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL ORDER BY nome")->fetch_all(MYSQLI_ASSOC);
+// Busca GRUPOS de máquinas para o dropdown do formulário
+$grupos_maquinas = $conn->query("SELECT id, nome_grupo FROM grupos_maquinas WHERE deleted_at IS NULL ORDER BY nome_grupo ASC")->fetch_all(MYSQLI_ASSOC);
 ?>
 
 <div class="container mt-4">
@@ -104,7 +105,6 @@ $maquinas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL
             Adicionar Nova Etapa
         </div>
         <div class="card-body">
-            <!-- ALTERAÇÃO: Formulário agora usa a estrutura de form-group -->
             <form action="etapas.php?roteiro_id=<?php echo $roteiro_id; ?>" method="POST">
                 <input type="hidden" name="add_etapa" value="1">
 
@@ -113,11 +113,11 @@ $maquinas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL
                     <input type="number" name="sequencia" class="form-control" placeholder="Ex: 10" required>
                 </div>
                 <div class="form-group">
-                    <label for="centro_trabalho_id">Máquina*</label>
-                    <select name="centro_trabalho_id" class="form-select" required>
+                    <label for="grupo_id">Grupo de Máquinas (Centro de Trabalho)*</label>
+                    <select name="grupo_id" class="form-select" required>
                         <option value="">Selecione...</option>
-                        <?php foreach($maquinas as $maquina): ?>
-                            <option value="<?php echo $maquina['id']; ?>"><?php echo htmlspecialchars($maquina['nome']); ?></option>
+                        <?php foreach($grupos_maquinas as $grupo): ?>
+                            <option value="<?php echo $grupo['id']; ?>"><?php echo htmlspecialchars($grupo['nome_grupo']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -151,7 +151,7 @@ $maquinas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL
                 <thead>
                     <tr>
                         <th>Seq.</th>
-                        <th>Máquina</th>
+                        <th>Grupo de Máquinas</th>
                         <th>Operação</th>
                         <th class="text-end">T. Setup (min)</th>
                         <th class="text-end">T. Produção (min)</th>
@@ -162,7 +162,7 @@ $maquinas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL
                     <?php foreach ($etapas as $etapa): ?>
                     <tr>
                         <td><?php echo htmlspecialchars($etapa['sequencia']); ?></td>
-                        <td><?php echo htmlspecialchars($etapa['maquina_nome']); ?></td>
+                        <td><?php echo htmlspecialchars($etapa['nome_grupo']); ?></td>
                         <td><?php echo htmlspecialchars($etapa['descricao_operacao']); ?></td>
                         <td class="text-end"><?php echo number_format($etapa['tempo_setup_min'], 2, ',', '.'); ?></td>
                         <td class="text-end"><?php echo number_format($etapa['tempo_producao_min'], 2, ',', '.'); ?></td>
