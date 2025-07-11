@@ -1,5 +1,6 @@
 <?php
 // modules/ordens_producao/apontar.php
+
 ob_start();
 session_start();
 date_default_timezone_set('America/Sao_Paulo');
@@ -40,14 +41,13 @@ if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
                     }
                 }
             }
-
+            
             $conn->execute_query("DELETE FROM apontamentos_producao WHERE id = ?", [$apontamento_id_para_excluir]);
             
             $numero_op_a_buscar = $conn->query("SELECT numero_op FROM ordens_producao WHERE id = " . $op_id_do_apontamento)->fetch_assoc()['numero_op'];
             $obs_movimentacao = "Entrada por apontamento. Lote: " . $numero_op_a_buscar . '-' . $apontamento_id_para_excluir;
             $conn->execute_query("DELETE FROM movimentacoes_estoque WHERE observacoes = ?", [$obs_movimentacao]);
 
-            // OBSERVAÇÃO: Verifica o status da OP e reabre se estiver 'concluida'
             $sql_get_op_status = "SELECT status FROM ordens_producao WHERE id = ?";
             $op_status_result = $conn->execute_query($sql_get_op_status, [$op_id_do_apontamento])->fetch_assoc();
             if ($op_status_result && $op_status_result['status'] === 'concluida') {
@@ -68,8 +68,7 @@ if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
     exit();
 }
 
-
-// Processa a criação de um novo apontamento
+// --- Processa a criação de um novo apontamento ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $op_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
     
@@ -146,10 +145,22 @@ require_once __DIR__ . '/../../includes/header.php';
 $op_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($op_id <= 0) die("ID da OP inválido.");
 
-$op_data = $conn->execute_query("SELECT op.*, p.nome AS produto_nome, p.codigo AS produto_codigo, p.estoque_atual AS produto_estoque_atual FROM ordens_producao op JOIN produtos p ON op.produto_id = p.id WHERE op.id = ?", [$op_id])->fetch_assoc();
+$sql_op = "SELECT op.*, p.nome AS produto_nome, p.codigo AS produto_codigo, gm.nome_grupo 
+           FROM ordens_producao op 
+           JOIN produtos p ON op.produto_id = p.id
+           LEFT JOIN grupos_maquinas gm ON op.grupo_id = gm.id
+           WHERE op.id = ?";
+$op_data = $conn->execute_query($sql_op, [$op_id])->fetch_assoc();
+
 if (!$op_data) die("Ordem de Produção não encontrada.");
 
-$maquinas_ativas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL AND status = 'operacional' ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
+// OBSERVAÇÃO: Busca apenas as máquinas do grupo definido na OP.
+$maquinas_do_grupo = [];
+if ($op_data['grupo_id']) {
+    $sql_maquinas = "SELECT m.id, m.nome FROM maquinas m JOIN maquina_grupo_associacao mga ON m.id = mga.maquina_id WHERE mga.grupo_id = ? AND m.status = 'operacional' AND m.deleted_at IS NULL ORDER BY m.nome";
+    $maquinas_do_grupo = $conn->execute_query($sql_maquinas, [$op_data['grupo_id']])->fetch_all(MYSQLI_ASSOC);
+}
+
 $operadores = $conn->query("SELECT id, nome, matricula FROM operadores WHERE deleted_at IS NULL AND ativo = 1 ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
 $apontamentos_anteriores = $conn->execute_query("SELECT ap.*, m.nome AS maquina_nome, ol.nome AS operador_nome, ol.matricula AS operador_matricula FROM apontamentos_producao ap JOIN maquinas m ON ap.maquina_id = m.id LEFT JOIN operadores ol ON ap.operador_id = ol.id WHERE ap.ordem_producao_id = ? AND ap.deleted_at IS NULL ORDER BY ap.data_apontamento DESC", [$op_id])->fetch_all(MYSQLI_ASSOC);
 
@@ -166,20 +177,20 @@ $necessidade_real = max(0, (float)$op_data['quantidade_produzir'] - $quantidade_
 
 <div class="op-details">
     <p><strong>Produto:</strong> <?php echo htmlspecialchars($op_data['produto_nome'] . ' (' . $op_data['produto_codigo'] . ')'); ?></p>
+    <p><strong>Grupo de Máquinas:</strong> <?php echo htmlspecialchars($op_data['nome_grupo'] ?? 'Não definido'); ?></p>
     <p><strong>Qtd. a Produzir:</strong> <?php echo number_format($op_data['quantidade_produzir'], 2, ',', '.'); ?></p>
-    <p><strong>Já Produzido:</strong> <?php echo number_format($quantidade_total_apontada, 2, ',', '.'); ?></p>
-    <p><strong>Necessidade Real:</strong> <?php echo number_format($necessidade_real, 2, ',', '.'); ?></p>
+    <p><strong>Necessidade:</strong> <?php echo number_format($necessidade_real, 2, ',', '.'); ?></p>
     <p><strong>Status da OP:</strong> <span class="status-<?php echo htmlspecialchars($op_data['status']); ?>"><?php echo htmlspecialchars(ucfirst($op_data['status'])); ?></span></p>
 </div>
 
 <?php if ($op_data['status'] !== 'concluida' && $op_data['status'] !== 'cancelada'): ?>
 <form action="apontar.php?id=<?php echo $op_data['id']; ?>" method="POST">
     <div class="form-group">
-        <label for="maquina_id">Máquina Utilizada:</label>
+        <label for="maquina_id">Máquina Utilizada (do Grupo):</label>
         <select id="maquina_id" name="maquina_id" required>
             <option value="">Selecione...</option>
-            <?php foreach ($maquinas_ativas as $maquina): ?>
-                <option value="<?php echo $maquina['id']; ?>" <?php echo ($op_data['maquina_id'] == $maquina['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($maquina['nome']); ?></option>
+            <?php foreach ($maquinas_do_grupo as $maquina): ?>
+                <option value="<?php echo $maquina['id']; ?>"><?php echo htmlspecialchars($maquina['nome']); ?></option>
             <?php endforeach; ?>
         </select>
     </div>
@@ -247,9 +258,6 @@ $necessidade_real = max(0, (float)$op_data['quantidade_produzir'] - $quantidade_
 <a href="index.php" class="back-link">Voltar para a lista de Ordens de Produção</a>
 
 <?php
-// Fecha a conexão com o banco de dados
-$conn->close();
-// Inclui o rodapé padrão
 require_once __DIR__ . '/../../includes/footer.php';
 ob_end_flush();
 ?>
