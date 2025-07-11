@@ -10,15 +10,16 @@ $conn = connectDB();
 $search_term = sanitizeInput($_GET['search_term'] ?? '');
 $filter_field = sanitizeInput($_GET['filter_field'] ?? 'p.nome'); 
 
+// OBSERVAÇÃO: Adicionado 'Código do Produto' às opções de filtro.
 $filter_options = [
-    'p.nome' => 'Produto',
+    'p.nome' => 'Nome do Produto',
+    'p.codigo' => 'Código do Produto',
     'mi.numero_nota_fiscal' => 'Número NF',
-    'f.nome' => 'Fornecedor',
-    'mi.local_armazenamento' => 'Local Armazenamento'
+    'f.nome' => 'Fornecedor'
 ];
 
 // --- Lógica de Paginação ---
-$items_per_page = 10;
+$items_per_page = 15;
 $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($current_page - 1) * $items_per_page;
 
@@ -32,13 +33,21 @@ if (!empty($search_term) && array_key_exists($filter_field, $filter_options)) {
 }
 
 // Contar o total de Entradas
-$sql_count = "SELECT COUNT(mi.id) AS total_items FROM materiais_insumos_entrada mi JOIN produtos p ON mi.produto_id = p.id LEFT JOIN fornecedores_clientes_lookup f ON mi.fornecedor_id = f.id" . $where_clause;
+$sql_count = "SELECT COUNT(mi.id) AS total_items 
+              FROM materiais_insumos_entrada mi 
+              JOIN produtos p ON mi.produto_id = p.id 
+              LEFT JOIN fornecedores_clientes_lookup f ON mi.fornecedor_id = f.id" . $where_clause;
 $result_count = $conn->execute_query($sql_count, $params);
 $total_items = $result_count->fetch_assoc()['total_items'] ?? 0;
 $total_pages = ceil($total_items / $items_per_page);
 
 // Buscar as Entradas para a página atual
-$sql_fetch = "SELECT mi.id, mi.data_entrada, p.nome AS produto_nome, p.codigo AS produto_codigo, mi.quantidade, mi.numero_nota_fiscal, mi.data_emissao_nota, f.nome AS fornecedor_nome FROM materiais_insumos_entrada mi JOIN produtos p ON mi.produto_id = p.id LEFT JOIN fornecedores_clientes_lookup f ON mi.fornecedor_id = f.id" . $where_clause . " ORDER BY mi.data_entrada DESC LIMIT ? OFFSET ?";
+$sql_fetch = "SELECT mi.id, mi.data_entrada, p.nome AS produto_nome, p.codigo AS produto_codigo, mi.quantidade, mi.numero_nota_fiscal, mi.data_emissao_nota, f.nome AS fornecedor_nome 
+              FROM materiais_insumos_entrada mi 
+              JOIN produtos p ON mi.produto_id = p.id 
+              LEFT JOIN fornecedores_clientes_lookup f ON mi.fornecedor_id = f.id" . $where_clause . " 
+              ORDER BY mi.data_entrada DESC 
+              LIMIT ? OFFSET ?";
 $params_fetch = array_merge($params, [$items_per_page, $offset]);
 $entradas = $conn->execute_query($sql_fetch, $params_fetch)->fetch_all(MYSQLI_ASSOC);
 ?>
@@ -58,7 +67,7 @@ $entradas = $conn->execute_query($sql_fetch, $params_fetch)->fetch_all(MYSQLI_AS
 
     <div class="search-container">
         <form action="index.php" method="GET" class="search-form-inline">
-            <input type="text" name="search_term" placeholder="Termo de pesquisa..." value="<?php echo htmlspecialchars($search_term); ?>">
+            <input type="text" name="search_term" placeholder="Buscar por Produto, Código, NF..." value="<?php echo htmlspecialchars($search_term); ?>">
             <select name="filter_field">
                 <?php foreach ($filter_options as $field_value => $field_label): ?>
                     <option value="<?php echo htmlspecialchars($field_value); ?>" <?php echo ($filter_field === $field_value) ? 'selected' : ''; ?>>
@@ -90,7 +99,7 @@ $entradas = $conn->execute_query($sql_fetch, $params_fetch)->fetch_all(MYSQLI_AS
                     <tr>
                         <td><?php echo date('d/m/Y H:i', strtotime($entrada['data_entrada'])); ?></td>
                         <td><?php echo htmlspecialchars($entrada['produto_nome'] . ' (' . $entrada['produto_codigo'] . ')'); ?></td>
-                        <td><?php echo number_format($entrada['quantidade'], 2, ',', '.'); ?></td>
+                        <td class="text-end"><?php echo number_format($entrada['quantidade'], 2, ',', '.'); ?></td>
                         <td><?php echo htmlspecialchars($entrada['numero_nota_fiscal']); ?></td>
                         <td><?php echo htmlspecialchars($entrada['fornecedor_nome'] ?? 'N/A'); ?></td>
                         <td>
