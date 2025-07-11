@@ -1,6 +1,6 @@
     </main>
     <footer>
-        <p>&copy; <?php echo date('Y'); ?> Sistema Jtek-PCP. Todos os direitos reservados.</p>
+        <p>&copy; <?php echo date('Y'); ?> PCP System. Todos os direitos reservados.</p>
     </footer>
 
     <!-- OBSERVAÇÃO: Script do Bootstrap Bundle (JS) -->
@@ -110,7 +110,7 @@
         </script>
 
 <?php
-// --- INÍCIO DO CÓDIGO DE RASTREAMENTO AVANÇADO (VERSÃO CORRIGIDA) ---
+// --- INÍCIO DO CÓDIGO DE RASTREAMENTO AVANADO (VERSÃO CORRIGIDA) ---
 // Esta função irá criar a sua própria conexão para garantir que a visita seja sempre registada.
 function log_visitor() {
     // Só executa se não for uma chamada AJAX (para não poluir o log) e se tivermos as constantes de DB
