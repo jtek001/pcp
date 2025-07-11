@@ -6,35 +6,59 @@ require_once __DIR__ . '/../../includes/header.php';
 
 // Lista de relatórios disponíveis.
 $relatorios_disponiveis = [
-    [
-        'titulo' => 'Produção por Período',
-        'descricao' => 'Gera um relatório detalhado de todos os apontamentos de produção realizados num intervalo de datas específico.',
-        'link' => 'relatorio_producao_periodo.php',
-        'icone' => 'fa-calendar-alt'
-    ],
-    [
+  [
         'titulo' => 'Entrada de Matéria-Prima',
-        'descricao' => 'Relatório de todas as matérias-primas que deram entrada no estoque, filtrado por período e produto.',
+        'descricao' => 'Relatório de todas as matérias-primas que deram entrada no estoque.',
         'link' => 'relatorio_entradas_materiais.php',
         'icone' => 'fa-truck-loading'
     ],
     [
+        'titulo' => 'Relatório de Produção',
+        'descricao' => 'Analise a produção com filtros avançados por linha, máquina, produto e pedido.',
+        'link' => 'relatorio_producao_detalhado.php',
+        'icone' => 'fa-search'
+    ],
+        [
+        'titulo' => 'Consumo de Semiacabados',
+        'descricao' => 'Analisa o consumo de componentes semiacabados no processo produtivo.',
+        'link' => 'relatorio_consumo_semiacabados.php',
+        'icone' => 'fa-puzzle-piece'
+    ],
+   [
+        'titulo' => 'Consumo de Matéria-Prima',
+        'descricao' => 'Analisa o consumo de matérias-primas e componentes no processo produtivo.',
+        'link' => 'relatorio_consumo_materia_prima.php',
+        'icone' => 'fa-industry'
+    ],
+    [
         'titulo' => 'Posição de Estoque',
-        'descricao' => 'Exibe o saldo atual de todos os produtos, com filtros por categoria e indicadores de estoque baixo.',
+        'descricao' => 'Exibe o saldo atual de todos os produtos, com filtros por categoria.',
         'link' => 'relatorio_estoque.php',
         'icone' => 'fa-boxes-stacked'
     ],
     [
         'titulo' => 'Relatório de Paradas',
-        'descricao' => 'Analisa o tempo total e os principais motivos das paradas de mquina em um período.',
-        'link' => '../manutencao/relatorio_paradas.php', // Link para o relatório no módulo de manutenção
+        'descricao' => 'Analisa o tempo total e os principais motivos das paradas de máquina.',
+        'link' => '../manutencao/relatorio_paradas.php',
         'icone' => 'fa-tools'
     ],
     [
         'titulo' => 'Inventário de Produção',
-        'descricao' => 'Lista os lotes produzidos que ainda não foram consumidos e estão disponíveis em estoque.',
+        'descricao' => 'Lista os lotes produzidos que ainda não foram consumidos e estão em estoque.',
         'link' => 'relatorio_inventario.php',
         'icone' => 'fa-clipboard-list'
+    ],
+    [
+        'titulo' => 'Inventário da Expedição',
+        'descricao' => 'Lista os lotes de produtos acabados que estão na área de expedição.',
+        'link' => 'relatorio_inventario_expedicao.php',
+        'icone' => 'fa-warehouse'
+    ],
+    [
+        'titulo' => 'Produtos Expedidos',
+        'descricao' => 'Analisa todos os produtos que j saíram para os clientes.',
+        'link' => 'relatorio_produtos_expedidos.php',
+        'icone' => 'fa-shipping-fast'
     ]
 ];
 
