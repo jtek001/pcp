@@ -166,7 +166,7 @@ try {
                     <td><?php echo number_format($produto['estoque_livre'], 2, ',', '.'); ?></td>
                     <td>
                         <?php
-                        // Condição para exibir o status visual
+                        // Condiço para exibir o status visual
                         if ($produto['estoque_livre'] <= $produto['estoque_minimo']) {
                             echo '<i class="fas fa-exclamation-triangle text-warning" title="Estoque livre abaixo ou igual ao mínimo!"></i>';
                         } else {
