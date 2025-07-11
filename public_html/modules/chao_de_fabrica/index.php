@@ -19,12 +19,13 @@ if (isset($_SESSION['message'])) {
 $search_term = sanitizeInput($_GET['search_term'] ?? '');
 $filter_field = sanitizeInput($_GET['filter_field'] ?? 'op.numero_op'); 
 
+// OBSERVAÇÃO: Filtro de 'Número do Pedido' re-adicionado
 $filter_options = [
     'op.numero_op' => 'Número da OP',
     'p.nome' => 'Produto',
     'p.codigo' => 'Código Produto',
-    'm.nome' => 'Máquina',
-    'op.numero_pedido' => 'Número do Pedido' // Filtro adicionado
+    'gm.nome_grupo' => 'Linha',
+    'op.numero_pedido' => 'Número do Pedido'
 ];
 
 $items_per_page = 10;
@@ -42,7 +43,7 @@ if (!empty($search_term) && array_key_exists($filter_field, $filter_options)) {
 $sql_count = "SELECT COUNT(DISTINCT op.id) AS total_items 
               FROM ordens_producao op 
               JOIN produtos p ON op.produto_id = p.id 
-              LEFT JOIN maquinas m ON op.maquina_id = m.id
+              LEFT JOIN grupos_maquinas gm ON op.grupo_id = gm.id
               JOIN pedidos_venda pv ON op.numero_pedido = pv.numero_pedido" . $where_clause;
 $result_count = $conn->execute_query($sql_count, $params);
 $total_items = $result_count->fetch_assoc()['total_items'] ?? 0;
@@ -52,14 +53,14 @@ $total_pages = ceil($total_items / $items_per_page);
 $sql_fetch = "SELECT 
                 op.id, op.numero_op, op.quantidade_produzir, op.status, 
                 p.nome AS produto_nome, p.codigo AS produto_codigo, 
-                m.nome AS maquina_nome,
+                gm.nome_grupo AS nome_linha,
                 (SELECT SUM(COALESCE(ap.quantidade_produzida, 0)) FROM apontamentos_producao ap WHERE ap.ordem_producao_id = op.id AND ap.deleted_at IS NULL) AS quantidade_apontada
               FROM 
                 ordens_producao op
               JOIN 
                 produtos p ON op.produto_id = p.id
               LEFT JOIN 
-                maquinas m ON op.maquina_id = m.id
+                grupos_maquinas gm ON op.grupo_id = gm.id
               JOIN 
                 pedidos_venda pv ON op.numero_pedido = pv.numero_pedido
               " . $where_clause . " 
@@ -80,7 +81,7 @@ $ops_list = $conn->execute_query($sql_fetch, $params_fetch)->fetch_all(MYSQLI_AS
 
     <div class="search-container">
         <form action="index.php" method="GET" class="search-form-inline">
-            <input type="text" name="search_term" placeholder="Buscar por OP, Produto, Pedido..." value="<?php echo htmlspecialchars($search_term); ?>">
+            <input type="text" name="search_term" placeholder="Buscar por OP, Pedido, Produto, Linha..." value="<?php echo htmlspecialchars($search_term); ?>">
             <select name="filter_field">
                 <?php foreach ($filter_options as $field_value => $field_label): ?>
                     <option value="<?php echo htmlspecialchars($field_value); ?>" <?php echo ($filter_field === $field_value) ? 'selected' : ''; ?>>
@@ -99,11 +100,11 @@ $ops_list = $conn->execute_query($sql_fetch, $params_fetch)->fetch_all(MYSQLI_AS
         <table>
             <thead>
                 <tr>
-                    <th>OP</th>
+                    <th>Ordem</th>
                     <th>Produto</th>
                     <th>Programado</th>
                     <th>Apontado</th>
-                    <th>Máquina</th>
+                    <th>Linha</th>
                     <th>Status</th>
                     <th>Ações</th>
                 </tr>
@@ -115,7 +116,7 @@ $ops_list = $conn->execute_query($sql_fetch, $params_fetch)->fetch_all(MYSQLI_AS
                         <td><?php echo htmlspecialchars($op['produto_nome'] ); ?></td>
                         <td class="text-end"><?php echo number_format($op['quantidade_produzir'], 2, ',', '.'); ?></td>
                         <td class="text-end"><?php echo number_format($op['quantidade_apontada'], 2, ',', '.'); ?></td>
-                        <td><?php echo htmlspecialchars($op['maquina_nome'] ?? 'N/A'); ?></td>
+                        <td><?php echo htmlspecialchars($op['nome_linha'] ?? 'N/A'); ?></td>
                         <td class="text-center">
                             <?php
                             if ($op['status'] === 'concluida') {
