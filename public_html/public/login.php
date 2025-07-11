@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } catch (mysqli_sql_exception $e) {
                 $message = "Erro ao autenticar: " . $e->getMessage();
                 $message_type = "error";
-                error_log("Erro durante a autenticação de login: " . $e->getMessage());
+                error_log("Erro durante a autenticao de login: " . $e->getMessage());
                 if ($conn && !$conn->is_closed()) $conn->close();
             }
         }
@@ -112,10 +112,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Sistema de PCP</title>
+    <title>Login - PCP System</title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/public/css/style.css">
+    <link rel="icon" type="image/x-icon" href="/public/img/pcp-sys.png">
     <style>
-        /* Estilos específicos para a página de login */
+        /* Estilos específicos para a pgina de login */
         body {
             display: flex;
             justify-content: center;
@@ -128,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             padding: 40px; /* Aumenta padding */
             border-radius: 15px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.3); /* Sombra mais forte */
-            max-width: 350px; /* Limita a largura do formulário */
+            max-width: 230px; /* Limita a largura do formulrio */
             width: 90%; /* Responsivo */
             background-color: #fff;
             margin: auto; /* Centraliza */
@@ -184,7 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body class="login-page">
     <main>
-        <h1><img src="<?php echo BASE_URL; ?>/public/img/logo-jtek.png" height="60" /></h1>
+        <h1><img src="<?php echo BASE_URL; ?>/public/img/pcp-system.png" width="220" /></h1>
         <?php if ($message): // Exibe a mensagem de feedback (sucesso ou erro) ?>
             <div class="message <?php echo htmlspecialchars($message_type); ?>">
                 <?php echo htmlspecialchars($message); ?>
