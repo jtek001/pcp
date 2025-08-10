@@ -2,17 +2,17 @@
 session_start();
 require_once __DIR__ . '/../../../config/database.php';
 
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+$conn = connectDB();
+$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+
+if (!$id) {
+    $_SESSION['message'] = "ID do grupo inválido.";
+    $_SESSION['message_type'] = "error";
     header("Location: index.php");
     exit();
 }
 
-$id = (int)$_GET['id'];
-$conn = connectDB();
-
-// OBSERVAÇÃO: Antes de excluir, seria ideal verificar se o grupo não está em uso em algum roteiro.
-// Por simplicidade, vamos apenas fazer o soft delete.
-
+// Lógica de Soft Delete: atualiza a coluna 'deleted_at' com a data e hora atuais.
 $sql = "UPDATE grupos_maquinas SET deleted_at = NOW() WHERE id = ?";
 
 try {
@@ -24,7 +24,6 @@ try {
     $_SESSION['message_type'] = "error";
 }
 
-$conn->close();
 header("Location: index.php");
 exit();
 ?>
