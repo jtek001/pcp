@@ -4,21 +4,39 @@
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../includes/header.php';
 
-// Lista de funcionalidades de manutenção.
+// Lista de funcionalidades de manutenão.
 $funcionalidades_manutencao = [
     [
-        'titulo' => 'Cadastro de Motivos de Parada',
-        'descricao' => 'Crie e gerencie os motivos padronizados para as paradas de máquina (ex: Falta de energia, Manutenção preventiva).',
-        'link' => 'motivos/index.php',
-        'icone' => 'fa-tags'
+        'titulo' => 'Jornada de Máquina',
+        'descricao' => 'Registe o início e o fim da jornada de trabalho em cada máquina para controlo de tempo de uso.',
+        'link' => 'jornada/index.php',
+        'icone' => 'fa-calendar-check'
     ],
     [
-        'titulo' => 'Controle de Paradas de Máquina',
-        'descricao' => 'Registe e acompanhe os motivos e a duração das paradas de cada máquina para análise de eficiência e OEE.',
+        'titulo' => 'Paradas de Máquina',
+        'descricao' => 'Registe e acompanhe os motivos e a duração das paradas de cada máquina para análise de eficiência.',
         'link' => 'paradas/index.php',
         'icone' => 'fa-stopwatch-20' 
     ],
     [
+        'titulo' => 'Motivos de Parada',
+        'descricao' => 'Crie e gerencie os motivos padronizados para as paradas de máquina.',
+        'link' => 'motivos/index.php',
+        'icone' => 'fa-tags'
+    ],
+     [
+        'titulo' => 'Grupos de Máquinas',
+        'descricao' => 'Crie e gerencie os grupos de máquinas.',
+        'link' => 'grupos/index.php',
+        'icone' => 'fa-layer-group'
+    ],
+    [
+        'titulo' => 'Linha do Tempo',
+        'descricao' => 'Visualize todos os eventos de uma máquina (jornadas, produções, paradas) em ordem cronológica.',
+        'link' => '../relatorios/relatorio_linha_do_tempo.php',
+        'icone' => 'fa-history'
+    ],
+  [
         'titulo' => 'Relatório de Paradas',
         'descricao' => 'Analise o tempo total de parada por máquina e motivo em um determinado período.',
         'link' => 'relatorio_paradas.php',
@@ -30,7 +48,7 @@ $funcionalidades_manutencao = [
 
 <div class="container mt-4">
     <h2><i class="fas fa-tools"></i> Módulo de Manutenção</h2>
-    <p class="lead">Ferramentas para gestão e controlo da manutenção de equipamentos.</p>
+    <p class="lead">Ferramentas para gestão e controlo da manutenão de equipamentos.</p>
 
     <div class="row mt-4">
         <?php foreach ($funcionalidades_manutencao as $funcionalidade): ?>
