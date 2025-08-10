@@ -5,7 +5,7 @@ require_once __DIR__ . '/../../../includes/header.php';
 
 $conn = connectDB();
 
-// OBSERVAÇÃO: A consulta foi atualizada para contar as máquinas operacionais dentro de cada grupo.
+// A consulta foi atualizada para contar as máquinas operacionais dentro de cada grupo.
 $sql = "SELECT 
             g.id, 
             g.nome_grupo, 
@@ -53,14 +53,15 @@ $grupos = $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
                     <td>
                         <a href="gerir_maquinas.php?id=<?php echo $grupo['id']; ?>" class="button small">Gerir Máquinas</a>
                         <a href="editar.php?id=<?php echo $grupo['id']; ?>" class="button edit small">Editar</a>
-                        <a href="excluir.php?id=<?php echo $grupo['id']; ?>" class="button delete small" onclick="return confirm('Tem certeza que deseja excluir este grupo?');">Excluir</a>
+                        <!-- OBSERVAÇÃO: Botão atualizado para usar o deleteModal -->
+                        <button class="button delete small" onclick="showDeleteModal('grupos_maquinas', <?php echo $grupo['id']; ?>)">Excluir</button>
                     </td>
                 </tr>
             <?php endforeach; ?>
         </tbody>
     </table>
 </div>
-
+    <a href="../index.php" class="back-link mt-4">Voltar ao Portal de Manutenção</a>
 <?php
 require_once __DIR__ . '/../../../includes/footer.php';
 ?>
