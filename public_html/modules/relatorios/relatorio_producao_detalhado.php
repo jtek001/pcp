@@ -12,7 +12,7 @@ $data_final_form = $_GET['data_final'] ?? date('Y-m-t\T23:59');
 // --- Lógica para buscar dados para os filtros dinâmicos ---
 $linhas_disponiveis = $conn->execute_query("SELECT DISTINCT gm.id, gm.nome_grupo FROM grupos_maquinas gm JOIN ordens_producao op ON gm.id = op.grupo_id JOIN apontamentos_producao ap ON op.id = ap.ordem_producao_id WHERE ap.data_apontamento BETWEEN ? AND ? ORDER BY gm.nome_grupo", [$data_inicial_form, $data_final_form])->fetch_all(MYSQLI_ASSOC);
 $maquinas_disponiveis = $conn->execute_query("SELECT DISTINCT m.id, m.nome FROM maquinas m JOIN apontamentos_producao ap ON m.id = ap.maquina_id WHERE ap.data_apontamento BETWEEN ? AND ? ORDER BY m.nome", [$data_inicial_form, $data_final_form])->fetch_all(MYSQLI_ASSOC);
-$pedidos_disponiveis = $conn->execute_query("SELECT DISTINCT op.numero_pedido FROM ordens_producao op JOIN apontamentos_producao ap ON op.id = ap.ordem_producao_id WHERE op.numero_pedido IS NOT NULL AND op.numero_pedido != '' AND ap.data_apontamento BETWEEN ? AND ? ORDER BY op.numero_pedido DESC", [$data_inicial_form, $data_final_form])->fetch_all(MYSQLI_ASSOC);
+$turnos_disponiveis = $conn->execute_query("SELECT DISTINCT t.id, t.nome_turno FROM turnos t JOIN apontamentos_producao ap ON t.id = ap.turno_id WHERE ap.data_apontamento BETWEEN ? AND ? ORDER BY t.nome_turno", [$data_inicial_form, $data_final_form])->fetch_all(MYSQLI_ASSOC);
 $produtos_disponiveis = $conn->execute_query("SELECT DISTINCT p.id, p.nome, p.codigo FROM produtos p JOIN ordens_producao op ON p.id = op.produto_id JOIN apontamentos_producao ap ON op.id = ap.ordem_producao_id WHERE ap.data_apontamento BETWEEN ? AND ? ORDER BY p.nome", [$data_inicial_form, $data_final_form])->fetch_all(MYSQLI_ASSOC);
 
 // --- Lógica de Filtragem e Busca de Dados do Relatório ---
@@ -42,7 +42,7 @@ if (isset($_GET['filtrar'])) {
                      JOIN produtos p ON op.produto_id = p.id
                      LEFT JOIN grupos_maquinas gm ON op.grupo_id = gm.id
                      LEFT JOIN maquinas m ON ap.maquina_id = m.id
-                     WHERE ap.deleted_at IS NULL";
+                     WHERE ap.lote_numero NOT LIKE '%DEV%' and ap.deleted_at IS NULL";
 
         if (!empty($_GET['data_inicial'])) {
             $sql_base .= " AND ap.data_apontamento >= ?";
@@ -68,11 +68,11 @@ if (isset($_GET['filtrar'])) {
             $types .= 'i';
             $filtros_aplicados['Máquina'] = $conn->execute_query("SELECT nome FROM maquinas WHERE id = ?", [$_GET['maquina_id']])->fetch_assoc()['nome'];
         }
-        if (!empty($_GET['numero_pedido'])) {
-            $sql_base .= " AND op.numero_pedido = ?";
-            $params[] = $_GET['numero_pedido'];
-            $types .= 's';
-            $filtros_aplicados['Pedido'] = $_GET['numero_pedido'];
+        if (!empty($_GET['turno_id'])) {
+            $sql_base .= " AND ap.turno_id = ?";
+            $params[] = $_GET['turno_id'];
+            $types .= 'i';
+            $filtros_aplicados['Turno'] = $conn->execute_query("SELECT nome_turno FROM turnos WHERE id = ?", [$_GET['turno_id']])->fetch_assoc()['nome_turno'];
         }
         if (!empty($_GET['produto_id'])) {
             $sql_base .= " AND op.produto_id = ?";
@@ -91,23 +91,30 @@ if (isset($_GET['filtrar'])) {
         $dados_relatorio = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
         
-        // Agrega dados diários para o gráfico
         $grafico_agregado = [];
+        $periodo_dias = new DatePeriod(
+            new DateTime($data_inicial_form),
+            new DateInterval('P1D'),
+            (new DateTime($data_final_form))->modify('+1 day')
+        );
+
+        foreach ($periodo_dias as $dia) {
+            $grafico_agregado[$dia->format('Y-m-d')] = ['PC' => 0, 'M3' => 0];
+        }
+
         foreach ($dados_relatorio as $dado) {
             $dia_key = date('Y-m-d', strtotime($dado['dia']));
-            if (!isset($grafico_agregado[$dia_key])) {
-                $grafico_agregado[$dia_key] = ['PC' => 0, 'M3' => 0];
-            }
-            if(strtoupper($dado['unidade_medida']) === 'PC') {
-                $grafico_agregado[$dia_key]['PC'] += $dado['total_quantidade'];
-            }
-            if(strtoupper($dado['unidade_medida2']) === 'M3') {
-                $grafico_agregado[$dia_key]['M3'] += $dado['volume_total_m3'];
+            if (isset($grafico_agregado[$dia_key])) {
+                if(strtoupper($dado['unidade_medida']) === 'PC') {
+                    $grafico_agregado[$dia_key]['PC'] += $dado['total_quantidade'];
+                }
+                if(strtoupper($dado['unidade_medida2']) === 'M3') {
+                    $grafico_agregado[$dia_key]['M3'] += $dado['volume_total_m3'];
+                }
             }
         }
-        ksort($grafico_agregado);
 
-        $dados_grafico_labels = array_map(fn($data) => date('d/m/Y', strtotime($data)), array_keys($grafico_agregado));
+        $dados_grafico_labels = array_map(fn($data) => date('d/m', strtotime($data)), array_keys($grafico_agregado));
         $dados_grafico_pc = array_column($grafico_agregado, 'PC');
         $dados_grafico_m3 = array_column($grafico_agregado, 'M3');
 
@@ -129,7 +136,7 @@ if (isset($_GET['filtrar'])) {
                     <div class="col-md-6 mb-3"><label>Data/Hora Final</label><input type="datetime-local" class="form-control" name="data_final" value="<?php echo htmlspecialchars($data_final_form); ?>"></div>
                     <div class="col-md-6 mb-3"><label>Linha de Produção</label><select name="linha_id" class="form-select"><option value="">Todas</option><?php foreach($linhas_disponiveis as $linha): ?><option value="<?php echo $linha['id']; ?>" <?php echo (($_GET['linha_id'] ?? '') == $linha['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($linha['nome_grupo']); ?></option><?php endforeach; ?></select></div>
                     <div class="col-md-6 mb-3"><label>Máquina</label><select name="maquina_id" class="form-select"><option value="">Todas</option><?php foreach($maquinas_disponiveis as $maquina): ?><option value="<?php echo $maquina['id']; ?>" <?php echo (($_GET['maquina_id'] ?? '') == $maquina['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($maquina['nome']); ?></option><?php endforeach; ?></select></div>
-                    <div class="col-md-6 mb-3"><label>Pedido</label><select name="numero_pedido" class="form-select"><option value="">Todos</option><?php foreach($pedidos_disponiveis as $pedido): ?><option value="<?php echo htmlspecialchars($pedido['numero_pedido']); ?>" <?php echo (($_GET['numero_pedido'] ?? '') == $pedido['numero_pedido']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($pedido['numero_pedido']); ?></option><?php endforeach; ?></select></div>
+                    <div class="col-md-6 mb-3"><label>Turno</label><select name="turno_id" class="form-select"><option value="">Todos</option><?php foreach($turnos_disponiveis as $turno): ?><option value="<?php echo $turno['id']; ?>" <?php echo (($_GET['turno_id'] ?? '') == $turno['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($turno['nome_turno']); ?></option><?php endforeach; ?></select></div>
                     <div class="col-md-6 mb-3"><label>Produto</label><select name="produto_id" class="form-select"><option value="">Todos</option><?php foreach($produtos_disponiveis as $produto): ?><option value="<?php echo $produto['id']; ?>" <?php echo (($_GET['produto_id'] ?? '') == $produto['id']) ? 'selected' : ''; ?>><?php echo htmlspecialchars($produto['nome'] . ' (' . $produto['codigo'] . ')'); ?></option><?php endforeach; ?></select></div>
                 </div>
                 <button type="submit" name="filtrar" class="button add">Gerar Relatório</button>
@@ -243,11 +250,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (metric === 'PC') {
                 myChart.data.datasets[0].data = dataPC;
                 myChart.data.datasets[0].label = 'Produção Diária (PC)';
+                myChart.options.scales.y.ticks.callback = value => value.toFixed(2);
                 btnPC.classList.add('active');
                 btnM3.classList.remove('active');
             } else { // M3
                 myChart.data.datasets[0].data = dataM3;
                 myChart.data.datasets[0].label = 'Produção Diária (M³)';
+                myChart.options.scales.y.ticks.callback = value => value.toFixed(4) + ' M³';
                 btnM3.classList.add('active');
                 btnPC.classList.remove('active');
             }
