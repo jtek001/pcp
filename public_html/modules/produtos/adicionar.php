@@ -219,7 +219,7 @@ $post_values = $_POST ?? [];
         <select id="grupo_select" name="grupo" required data-initial-value="<?php echo htmlspecialchars($post_values['grupo'] ?? ''); ?>">
             <option value="">Selecione um Grupo</option>
             <?php
-            // Adiciona a opão digitada anteriormente se houver erro e a lista não contiver
+            // Adiciona a opo digitada anteriormente se houver erro e a lista não contiver
             $current_grupo = $post_values['grupo'] ?? '';
             if (!empty($current_grupo) && !in_array($current_grupo, $grupos)) {
                 echo '<option value="' . htmlspecialchars($current_grupo) . '" selected>' . htmlspecialchars($current_grupo) . '</option>';
@@ -329,21 +329,20 @@ $post_values = $_POST ?? [];
         <label for="largura">Largura:</label>
         <input type="number" id="largura" name="largura" step="0.01" value="<?php echo htmlspecialchars($post_values['largura'] ?? '0.00'); ?>" required placeholder="Ex: 10.00">
     </div>
-
+    <div class="form-group">
+        <label for="comprimento">Comprimento:</label>
+        <input type="number" id="comprimento" name="comprimento" step="0.01" value="<?php echo htmlspecialchars($post_values['comprimento'] ?? '0.00'); ?>" required placeholder="Ex: 100.00">
+    </div>
     <div class="form-group">
         <label for="perimetro_mm">Perímetro (mm):</label>
         <input type="number" id="perimetro_mm" name="perimetro_mm" step="0.01" value="<?php echo htmlspecialchars($post_values['perimetro_mm'] ?? ''); ?>" placeholder="Ex: 50.00">
     </div>
 
     <div class="form-group">
-        <label for="area_perfil_mm2">Área de Perfil (mm²):</label>
+        <label for="area_perfil_mm2">rea de Perfil (mm²):</label>
         <input type="number" id="area_perfil_mm2" name="area_perfil_mm2" step="0.01" value="<?php echo htmlspecialchars($post_values['area_perfil_mm2'] ?? ''); ?>" placeholder="Ex: 25.00">
     </div>
 
-    <div class="form-group">
-        <label for="comprimento">Comprimento:</label>
-        <input type="number" id="comprimento" name="comprimento" step="0.01" value="<?php echo htmlspecialchars($post_values['comprimento'] ?? ''); ?>" placeholder="Ex: 100.00">
-    </div>
 
     <div class="form-group">
         <label for="altura_embalagem">Altura Embalagem:</label>
@@ -432,7 +431,7 @@ $post_values = $_POST ?? [];
         larguraEmbalagemInput.addEventListener('input', calculatePecasPorEmbalagem);
         calculatePecasPorEmbalagem(); // Initial calculation
 
-        // Função para alternar entre select e input de texto
+        // Funão para alternar entre select e input de texto
         window.toggleInput = function(event, fieldName) {
             event.preventDefault(); // Previne o comportamento padrão do link (ir para #)
 
