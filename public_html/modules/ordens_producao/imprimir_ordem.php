@@ -16,11 +16,11 @@ if (!$conn) {
     die("Falha na conexão com o banco de dados.");
 }
 
-// Busca os detalhes da Ordem de Produção, incluindo o nome do cliente e do grupo de máquinas
+// Busca os detalhes da Ordem de Produção
 $sql_op = "SELECT 
                 op.id, op.numero_op, op.numero_pedido, op.quantidade_produzir, op.data_emissao, 
                 op.data_prevista_conclusao, op.status, op.observacoes,
-                p.nome as produto_nome, p.codigo as produto_codigo, p.unidade_medida2, 
+                p.id as produto_id, p.nome as produto_nome, p.codigo as produto_codigo, p.unidade_medida2, 
                 p.espessura, p.largura, p.comprimento,
                 gm.nome_grupo as linha_nome,
                 fc.nome as cliente_nome
@@ -42,13 +42,29 @@ if ($result_op->num_rows === 0) {
 $op = $result_op->fetch_assoc();
 $stmt_op->close();
 
+// --- OBSERVAÇÃO: CÁLCULO DO TEMPO DE MÁQUINA ---
+$tempo_total_minutos = 0;
+$sql_roteiro_times = "SELECT 
+                        SUM(re.tempo_setup_min) as total_setup,
+                        SUM(re.tempo_producao_min) as total_producao_por_peca
+                      FROM roteiro_etapas re
+                      JOIN roteiros r ON re.roteiro_id = r.id
+                      WHERE r.produto_id = ? AND r.ativo = 1 AND re.deleted_at IS NULL";
+$stmt_roteiro = $conn->prepare($sql_roteiro_times);
+$stmt_roteiro->bind_param("i", $op['produto_id']);
+$stmt_roteiro->execute();
+$roteiro_times = $stmt_roteiro->get_result()->fetch_assoc();
+$stmt_roteiro->close();
+
+if ($roteiro_times) {
+    $tempo_total_minutos = (float)$roteiro_times['total_setup'] + ((float)$roteiro_times['total_producao_por_peca'] * (float)$op['quantidade_produzir']);
+}
+$tempo_total_horas = $tempo_total_minutos / 60;
+
 
 // Busca os materiais empenhados
 $sql_materiais_empenhados = "SELECT
-                                p.codigo,
-                                p.nome,
-                                em.quantidade_inicial,
-                                p.unidade_medida,
+                                p.codigo, p.nome, em.quantidade_inicial, p.unidade_medida,
                                 CASE 
                                     WHEN UPPER(p.unidade_medida2) = 'M3' 
                                     THEN calcularVolume(em.quantidade_inicial, p.espessura, p.largura, p.comprimento)
@@ -75,6 +91,7 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pedido <?php echo htmlspecialchars($op['numero_pedido']); ?></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; background-color: #fff; color: #333; font-size: 12px; }
         .container { width: 95%; max-width: 800px; margin: 20px auto; padding: 20px; border: 1px solid #ccc; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
@@ -135,6 +152,7 @@ $conn->close();
                 }
                 ?>
             </p>
+            <p><b>Tempo de Máquina:</b> <?php echo number_format($tempo_total_horas, 2, ',', '.'); ?> horas</p>
         </div>
 
         <div class="info-section">
@@ -194,8 +212,12 @@ $conn->close();
         </div>
     </div>
 
-    <div style="text-align: center; margin-top: 20px;" class="no-print">
-        <button onclick="window.print()">Imprimir</button>
+    <div style="text-align: center; margin-top: 20px;" class="no-print" >
+        
+        <div class="no-print" style="text-align: center; margin-top: 20px;">
+            <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Imprimir</button>
+         </div>
+        
     </div>
 </body>
 </html>
