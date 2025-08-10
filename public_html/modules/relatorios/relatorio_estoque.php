@@ -134,12 +134,12 @@ $export_query_string = http_build_query(array_filter($_GET));
         <div class="card">
             <div class="card-header">Resultados</div>
             <div class="card-body">
-              <h4>Posiço Atual de Estoque</h4>
+              <h4>Posição Atual de Estoque</h4>
                 <?php if (!empty($dados_relatorio)): ?>
                 <table>
                     <thead>
                         <tr>
-                            <th>Cdigo</th>
+                            <th>Código</th>
                             <th>Grupo</th>
                             <th>Produto</th>
                             <th>Un. Medida</th>
