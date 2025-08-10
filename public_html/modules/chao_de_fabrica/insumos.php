@@ -2,114 +2,68 @@
 ob_start();
 session_start();
 require_once __DIR__ . '/../../config/database.php';
+date_default_timezone_set('America/Sao_Paulo');
 
 $conn = connectDB();
 
-// Processa o formulário de consumo ou estorno de insumo
+// Processa o formulário de consumo de insumo
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? 'consumir_insumo';
     $op_id_post = filter_input(INPUT_POST, 'op_id', FILTER_VALIDATE_INT);
+    $insumo_id = filter_input(INPUT_POST, 'insumo_id', FILTER_VALIDATE_INT);
+    $quantidade_consumida = filter_input(INPUT_POST, 'quantidade_consumida', FILTER_VALIDATE_FLOAT);
+    $operador_id = filter_input(INPUT_POST, 'operador_id', FILTER_VALIDATE_INT);
+    $turno_id = filter_input(INPUT_POST, 'turno_id', FILTER_VALIDATE_INT);
+    $data_consumo = sanitizeInput($_POST['data_consumo']);
 
-    if ($action === 'consumir_insumo') {
-        $insumo_id = filter_input(INPUT_POST, 'insumo_id', FILTER_VALIDATE_INT);
-        $quantidade_consumida = filter_input(INPUT_POST, 'quantidade_consumida', FILTER_VALIDATE_FLOAT);
-        $operador_id = filter_input(INPUT_POST, 'operador_id', FILTER_VALIDATE_INT);
-        $data_consumo = sanitizeInput($_POST['data_consumo']);
+    if ($op_id_post && $insumo_id && $quantidade_consumida > 0 && $operador_id && $turno_id) {
+        $conn->begin_transaction();
+        try {
+            // Inserir na tabela de consumo
+            $sql_consumo = "INSERT INTO consumo_producao (ordem_producao_id, produto_material_id, quantidade_consumida, data_consumo, responsavel_id, turno_id, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            $obs_consumo = "Consumo de insumo direto para a OP.";
+            $conn->execute_query($sql_consumo, [$op_id_post, $insumo_id, $quantidade_consumida, $data_consumo, $operador_id, $turno_id, $obs_consumo]);
 
-        if ($op_id_post && $insumo_id && $quantidade_consumida > 0 && $operador_id) {
-            $conn->begin_transaction();
-            try {
-                // Inserir na tabela de consumo
-                $sql_consumo = "INSERT INTO consumo_producao (ordem_producao_id, produto_material_id, quantidade_consumida, data_consumo, responsavel_id, observacoes) VALUES (?, ?, ?, ?, ?, ?)";
-                $obs_consumo = "Consumo de insumo direto para a OP.";
-                $conn->execute_query($sql_consumo, [$op_id_post, $insumo_id, $quantidade_consumida, $data_consumo, $operador_id, $obs_consumo]);
+            // Registrar a SAÍDA no estoque
+            $sql_movimentacao = "INSERT INTO movimentacoes_estoque (produto_id, tipo_movimentacao, quantidade, origem_destino, observacoes) VALUES (?, 'saida', ?, ?, ?)";
+            $obs_mov = "Consumo de Insumo para OP";
+            $conn->execute_query($sql_movimentacao, [$insumo_id, $quantidade_consumida, 'Produção', $obs_mov]);
 
-                // Registrar a SAÍDA no estoque
-                $sql_movimentacao = "INSERT INTO movimentacoes_estoque (produto_id, tipo_movimentacao, quantidade, origem_destino, observacoes) VALUES (?, 'saida', ?, ?, ?)";
-                $obs_mov = "Consumo de Insumo para OP";
-                $conn->execute_query($sql_movimentacao, [$insumo_id, $quantidade_consumida, 'Produção', $obs_mov]);
+            // Atualizar o estoque_atual do insumo
+            $sql_update_estoque = "UPDATE produtos SET estoque_atual = GREATEST(0, estoque_atual - ?) WHERE id = ?";
+            $conn->execute_query($sql_update_estoque, [$quantidade_consumida, $insumo_id]);
 
-                // Atualizar o estoque_atual do insumo
-                $sql_update_estoque = "UPDATE produtos SET estoque_atual = GREATEST(0, estoque_atual - ?) WHERE id = ?";
-                $conn->execute_query($sql_update_estoque, [$quantidade_consumida, $insumo_id]);
+            $conn->commit();
+            $_SESSION['message'] = "Consumo de insumo registrado com sucesso!";
+            $_SESSION['message_type'] = "success";
 
-                $conn->commit();
-                $_SESSION['message'] = "Consumo de insumo registrado com sucesso!";
-                $_SESSION['message_type'] = "success";
-
-            } catch (Exception $e) {
-                $conn->rollback();
-                $_SESSION['message'] = "Erro ao registrar consumo: " . $e->getMessage();
-                $_SESSION['message_type'] = "error";
-            }
-        } else {
-            $_SESSION['message'] = "Todos os campos são obrigatórios e a quantidade deve ser maior que zero.";
-            $_SESSION['message_type'] = "warning";
+        } catch (Exception $e) {
+            $conn->rollback();
+            $_SESSION['message'] = "Erro ao registrar consumo: " . $e->getMessage();
+            $_SESSION['message_type'] = "error";
         }
-    } elseif ($action === 'estornar_insumo') {
-        $consumo_id = filter_input(INPUT_POST, 'consumo_id', FILTER_VALIDATE_INT);
-        if ($consumo_id) {
-            $conn->begin_transaction();
-            try {
-                $sql_get_consumo = "SELECT * FROM consumo_producao WHERE id = ?";
-                $consumo_data = $conn->execute_query($sql_get_consumo, [$consumo_id])->fetch_assoc();
-
-                if (!$consumo_data) {
-                    throw new Exception("Registro de consumo de insumo não encontrado.");
-                }
-
-                $sql_delete_consumo = "UPDATE consumo_producao SET deleted_at = NOW() WHERE id = ?";
-                $conn->execute_query($sql_delete_consumo, [$consumo_id]);
-
-                $sql_return_stock = "UPDATE produtos SET estoque_atual = estoque_atual + ? WHERE id = ?";
-                $conn->execute_query($sql_return_stock, [$consumo_data['quantidade_consumida'], $consumo_data['produto_material_id']]);
-
-                $sql_mov_reversal = "INSERT INTO movimentacoes_estoque (produto_id, tipo_movimentacao, quantidade, origem_destino, observacoes) VALUES (?, 'entrada', ?, ?, ?)";
-                $obs_mov_reversal = "Estorno do Consumo de Insumo ID: " . $consumo_id;
-                $conn->execute_query($sql_mov_reversal, [$consumo_data['produto_material_id'], $consumo_data['quantidade_consumida'], 'Estorno Insumo', $obs_mov_reversal]);
-
-                $conn->commit();
-                $_SESSION['message'] = "Consumo de insumo estornado com sucesso! O estoque foi atualizado.";
-                $_SESSION['message_type'] = "success";
-
-            } catch (Exception $e) {
-                $conn->rollback();
-                $_SESSION['message'] = "Erro ao estornar insumo: " . $e->getMessage();
-                $_SESSION['message_type'] = "error";
-            }
-        } else {
-            $_SESSION['message'] = "ID de consumo de insumo inválido para estorno.";
-            $_SESSION['message_type'] = "warning";
-        }
+    } else {
+        $_SESSION['message'] = "Todos os campos são obrigatórios.";
+        $_SESSION['message_type'] = "warning";
     }
-
+    
     header("Location: insumos.php?id=" . $op_id_post);
     exit();
 }
 
 $op_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
-if (!$op_id) {
-    die("ID da Ordem de Produção não fornecido.");
-}
+if (!$op_id) die("ID da Ordem de Produção não fornecido.");
 
 $op_sql = "SELECT op.numero_op, p.nome as produto_nome, p.codigo as produto_codigo FROM ordens_producao op JOIN produtos p ON op.produto_id = p.id WHERE op.id = ?";
 $op_details = $conn->execute_query($op_sql, [$op_id])->fetch_assoc();
-
-$operadores = $conn->query("SELECT id, nome FROM operadores WHERE deleted_at IS NULL AND ativo = 1 ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
-
-$consumos_sql = "SELECT cp.id as consumo_id, cp.data_consumo, p.nome as material_nome, cp.quantidade_consumida, resp.nome as responsavel_nome
-                 FROM consumo_producao cp
-                 JOIN produtos p ON cp.produto_material_id = p.id
-                 LEFT JOIN operadores resp ON cp.responsavel_id = resp.id
-                 WHERE cp.ordem_producao_id = ? AND cp.deleted_at IS NULL AND cp.apontamento_id IS NULL
-                 ORDER BY cp.data_consumo DESC";
-$consumos_insumos = $conn->execute_query($consumos_sql, [$op_id])->fetch_all(MYSQLI_ASSOC);
+$operadores = $conn->query("SELECT id, nome FROM operadores WHERE ativo = 1 and deleted_at IS NULL ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
+$turnos = $conn->query("SELECT id, nome_turno FROM turnos WHERE deleted_at IS NULL ORDER BY nome_turno ASC")->fetch_all(MYSQLI_ASSOC);
+$consumos_insumos = $conn->execute_query("SELECT cp.id as consumo_id, cp.data_consumo, p.nome as material_nome, cp.quantidade_consumida, resp.nome as responsavel_nome FROM consumo_producao cp JOIN produtos p ON cp.produto_material_id = p.id LEFT JOIN operadores resp ON cp.responsavel_id = resp.id WHERE cp.ordem_producao_id = ? AND cp.deleted_at IS NULL AND cp.apontamento_id IS NULL ORDER BY cp.data_consumo DESC", [$op_id])->fetch_all(MYSQLI_ASSOC);
 
 require_once __DIR__ . '/../../includes/header.php';
 ?>
 
 <div class="container mt-4">
-    <h2>Consumo de Matéria-Prima</h2>
+    <h2>Consumo de Insumos</h2>
 
     <?php if (isset($_SESSION['message'])): ?>
     <div class="message <?php echo htmlspecialchars($_SESSION['message_type']); ?>">
@@ -125,9 +79,8 @@ require_once __DIR__ . '/../../includes/header.php';
     </div>
     <?php endif; ?>
 
-    <form action="insumos.php" method="POST" id="form-insumos">
+    <form action="insumos.php?id=<?php echo $op_id; ?>" method="POST" id="form-insumos">
         <input type="hidden" name="op_id" value="<?php echo $op_id; ?>">
-        <input type="hidden" name="action" value="consumir_insumo">
         
         <div class="form-group full-width">
             <label for="insumo_search">Buscar Matéria-Prima / Componente (Código):</label>
@@ -151,6 +104,17 @@ require_once __DIR__ . '/../../includes/header.php';
                 <?php endforeach; ?>
             </select>
         </div>
+
+        <div class="form-group">
+            <label for="turno_id">Turno</label>
+            <select name="turno_id" id="turno_id" required>
+                <option value="">Selecione...</option>
+                <?php foreach ($turnos as $turno): ?>
+                <option value="<?php echo $turno['id']; ?>"><?php echo htmlspecialchars($turno['nome_turno']); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
         <div class="form-group">
             <label for="quantidade_consumida">Quantidade a Consumir</label>
             <input type="number" name="quantidade_consumida" id="quantidade_consumida" step="0.01" required>
@@ -186,10 +150,10 @@ require_once __DIR__ . '/../../includes/header.php';
                         <tr>
                             <td><?php echo date('d/m/Y H:i', strtotime($consumo['data_consumo'])); ?></td>
                             <td><?php echo htmlspecialchars($consumo['material_nome']); ?></td>
-                            <td><?php echo number_format($consumo['quantidade_consumida'], 2, ',', '.'); ?></td>
+                            <td class="text-end"><?php echo number_format($consumo['quantidade_consumida'], 2, ',', '.'); ?></td>
                             <td><?php echo htmlspecialchars($consumo['responsavel_nome'] ?? 'N/A'); ?></td>
                             <td>
-                                <button type="button" class="button delete small" onclick="estornarInsumo(<?php echo $consumo['consumo_id']; ?>, <?php echo $op_id; ?>)">Estornar</button>
+                                <button type="button" class="button delete small" onclick="showDeleteModal('consumo_insumo', <?php echo $consumo['consumo_id']; ?>)">Estornar</button>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -209,7 +173,6 @@ require_once __DIR__ . '/../../includes/header.php';
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const insumoSearchInput = document.getElementById('insumo_search');
-    
     const insumoDetailsDiv = document.getElementById('insumo-details');
     const insumoIdInput = document.getElementById('insumo_id');
     const insumoNomeSpan = document.getElementById('insumo-nome');
@@ -243,7 +206,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 insumoEstoqueSpan.textContent = insumo.estoque_atual;
                 quantidadeConsumidaInput.max = insumo.estoque_atual;
                 insumoDetailsDiv.style.display = 'block';
-                // Não limpa o campo de busca para manter o código visível
             })
             .catch(error => {
                 alert(error.error || 'Erro ao buscar insumo.');
@@ -253,36 +215,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     });
 });
-
-function estornarInsumo(consumoId, opId) {
-    if (confirm('Tem certeza que deseja estornar este consumo de matéria-prima?')) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = 'insumos.php';
-        form.style.display = 'none';
-
-        const opIdInput = document.createElement('input');
-        opIdInput.type = 'hidden';
-        opIdInput.name = 'op_id';
-        opIdInput.value = opId;
-        form.appendChild(opIdInput);
-
-        const consumoIdInput = document.createElement('input');
-        consumoIdInput.type = 'hidden';
-        consumoIdInput.name = 'consumo_id';
-        consumoIdInput.value = consumoId;
-        form.appendChild(consumoIdInput);
-
-        const actionInput = document.createElement('input');
-        actionInput.type = 'hidden';
-        actionInput.name = 'action';
-        actionInput.value = 'estornar_insumo';
-        form.appendChild(actionInput);
-
-        document.body.appendChild(form);
-        form.submit();
-    }
-}
 </script>
 
 <?php 
