@@ -56,7 +56,7 @@ $dados_grafico = [];
 $hoje = new DateTime();
 $uma_semana_atras = (new DateTime())->sub(new DateInterval('P6D')); // Pega os últimos 7 dias incluindo hoje
 
-// Prepara um array com os últimos 7 dias para garantir que todos apareçam no gráfico
+// Prepara um array com os ltimos 7 dias para garantir que todos apareçam no gráfico
 $periodo_dias = new DatePeriod($uma_semana_atras, new DateInterval('P1D'), $hoje->add(new DateInterval('P1D')));
 $dados_agregados = [];
 foreach ($periodo_dias as $dia) {
@@ -125,7 +125,7 @@ $dados_grafico_m3 = array_column($dados_agregados, 'M3');
                 <div class="card-body text-center">
                     <i class="fas fa-industry fa-3x text-primary mb-3"></i>
                     <h5 class="card-title">Ordens de Produção</h5>
-                    <p class="card-text text-muted">Gere e acompanhe as ordens de produção para o chão de fbrica.</p>
+                    <p class="card-text text-muted">Gere e acompanhe as ordens de produção para o chão de fábrica.</p>
                     <a href="<?php echo BASE_URL; ?>/modules/ordens_producao/index.php" class="button">Acessar OPs</a>
                 </div>
             </div>
@@ -197,7 +197,7 @@ $dados_grafico_m3 = array_column($dados_agregados, 'M3');
         </div>
         <div class="col-md-4 mb-4">
             <div class="indicator-card h-100 <?php echo ($total_maquinas_paradas > 0) ? 'alert' : ''; ?>">
-                <h3>Máquinas Paradas</h3>
+                <h3>Mquinas Paradas</h3>
                 <p class="indicator-number"><?php echo $total_maquinas_paradas; ?></p>
                 <p class="indicator-description">Manutenção ou problemas.</p>
             </div>
@@ -220,7 +220,7 @@ $dados_grafico_m3 = array_column($dados_agregados, 'M3');
         <div class="card-body">
             <div class="text-center mb-3">
                 <button id="btnVerPC" class="button small">Ver em Qtde (PC)</button>
-                <button id="btnVerM3" class="button small active">Ver em Volume (M³)</button>
+                <button id="btnVerM3" class="button small active">Ver em Volume (M)</button>
             </div>
             <canvas id="graficoProducaoDashboard" style="max-height: 350px;"></canvas>
         </div>
