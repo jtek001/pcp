@@ -56,8 +56,8 @@ $roteiros = $conn->execute_query($sql, [$items_per_page, $offset])->fetch_all(MY
                         <td>
                             <a href="etapas.php?roteiro_id=<?php echo $roteiro['id']; ?>" class="button small">Ver/Editar Etapas</a>
                             <a href="editar.php?id=<?php echo $roteiro['id']; ?>" class="button edit small">Editar</a>
-                            <!-- BOTÃO CORRIGIDO: Usa link direto com confirmação JS -->
-                            <a href="excluir.php?id=<?php echo $roteiro['id']; ?>" class="button delete small" onclick="return confirm('Tem certeza que deseja excluir este roteiro?');">Excluir</a>
+                            <!-- OBSERVAÇÃO: Botão atualizado para usar o deleteModal -->
+                            <button class="button delete small" onclick="showDeleteModal('roteiros', <?php echo $roteiro['id']; ?>)">Excluir</button>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -76,5 +76,4 @@ $roteiros = $conn->execute_query($sql, [$items_per_page, $offset])->fetch_all(MY
 
 <?php
 require_once __DIR__ . '/../../includes/footer.php';
-$conn->close();
 ?>
