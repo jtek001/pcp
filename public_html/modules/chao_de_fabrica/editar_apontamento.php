@@ -1,5 +1,5 @@
 <?php
-// /modules/chao_de_fabrica/editar_apontamento.php
+// /modules/ordens_producao/editar_apontamento.php
 
 ob_start();
 session_start();
@@ -19,11 +19,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $op_id_retorno = filter_input(INPUT_POST, 'ordem_producao_id', FILTER_VALIDATE_INT);
     $maquina_id_nova = filter_input(INPUT_POST, 'maquina_id', FILTER_VALIDATE_INT);
     $operador_id_novo = filter_input(INPUT_POST, 'operador_id', FILTER_VALIDATE_INT);
+    $turno_id_novo = filter_input(INPUT_POST, 'turno_id', FILTER_VALIDATE_INT); // Campo novo
     $quantidade_nova = (float) sanitizeInput($_POST['quantidade_produzida']);
     $data_apontamento_nova = sanitizeInput($_POST['data_apontamento']);
     $observacoes_novas = sanitizeInput($_POST['observacoes']);
 
-    if ($maquina_id_nova && $operador_id_novo && $quantidade_nova > 0) {
+    if ($maquina_id_nova && $operador_id_novo && $turno_id_novo && $quantidade_nova > 0) {
         $conn->begin_transaction();
         try {
             // 1. Busca os dados originais do apontamento
@@ -55,8 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // 5. Atualiza o apontamento em si
-            $sql_update_apontamento = "UPDATE apontamentos_producao SET maquina_id = ?, operador_id = ?, quantidade_produzida = ?, data_apontamento = ?, observacoes = ? WHERE id = ?";
-            $conn->execute_query($sql_update_apontamento, [$maquina_id_nova, $operador_id_novo, $quantidade_nova, $data_apontamento_nova, $observacoes_novas, $apontamento_id]);
+            $sql_update_apontamento = "UPDATE apontamentos_producao SET maquina_id = ?, operador_id = ?, turno_id = ?, quantidade_produzida = ?, data_apontamento = ?, observacoes = ? WHERE id = ?";
+            $conn->execute_query($sql_update_apontamento, [$maquina_id_nova, $operador_id_novo, $turno_id_novo, $quantidade_nova, $data_apontamento_nova, $observacoes_novas, $apontamento_id]);
 
             $conn->commit();
             $_SESSION['message'] = "Apontamento atualizado com sucesso!";
@@ -77,10 +78,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // --- Lógica para buscar os dados e exibir o formulário (GET) ---
 require_once __DIR__ . '/../../includes/header.php';
 
-$sql_get = "SELECT ap.*, op.grupo_id, ord.numero_op
+$sql_get = "SELECT ap.*, op.grupo_id 
             FROM apontamentos_producao ap 
             JOIN ordens_producao op ON ap.ordem_producao_id = op.id
-            JOIN ordens_producao ord ON ap.ordem_producao_id = ord.id
             WHERE ap.id = ?";
 $apontamento = $conn->execute_query($sql_get, [$apontamento_id])->fetch_assoc();
 if (!$apontamento) {
@@ -97,66 +97,76 @@ if ($grupo_id_op) {
     $nome_grupo = 'Nenhum grupo definido na OP';
 }
 
-
 $operadores = $conn->query("SELECT id, nome, matricula FROM operadores WHERE deleted_at IS NULL AND ativo = 1 ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
+$turnos = $conn->query("SELECT id, nome_turno FROM turnos WHERE deleted_at IS NULL ORDER BY nome_turno ASC")->fetch_all(MYSQLI_ASSOC);
 ?>
 
-<div class="container mt-4">
-    <h2><i class="fas fa-edit"></i> Editar Apontamento da OP: <?php echo htmlspecialchars($apontamento['numero_op']); ?></h2>
+<h2>Editar Apontamento de Produção</h2>
 
-    <?php if (isset($_SESSION['message'])): ?>
-        <div class="message <?php echo htmlspecialchars($_SESSION['message_type']); ?>"><?php echo $_SESSION['message']; ?></div>
-        <?php unset($_SESSION['message']); unset($_SESSION['message_type']); ?>
-    <?php endif; ?>
+<?php if (isset($_SESSION['message'])): ?>
+    <div class="message <?php echo htmlspecialchars($_SESSION['message_type']); ?>"><?php echo $_SESSION['message']; ?></div>
+    <?php unset($_SESSION['message']); unset($_SESSION['message_type']); ?>
+<?php endif; ?>
 
-    <form action="editar_apontamento.php?id=<?php echo $apontamento_id; ?>" method="POST">
-        <input type="hidden" name="ordem_producao_id" value="<?php echo $apontamento['ordem_producao_id']; ?>">
-        
-        <div class="form-group">
-            <label>Grupo de Máquinas Designado:</label>
-            <input type="text" class="form-control" value="<?php echo htmlspecialchars($nome_grupo); ?>" readonly>
-        </div>
+<form action="editar_apontamento.php?id=<?php echo $apontamento_id; ?>" method="POST">
+    <input type="hidden" name="ordem_producao_id" value="<?php echo $apontamento['ordem_producao_id']; ?>">
+    
+    <div class="form-group">
+        <label>Grupo de Máquinas Designado:</label>
+        <input type="text" class="form-control" value="<?php echo htmlspecialchars($nome_grupo); ?>" readonly>
+    </div>
 
-        <div class="form-group">
-            <label for="maquina_id">Máquina Utilizada (do Grupo):</label>
-            <select id="maquina_id" name="maquina_id" required>
-                <option value="">Selecione a máquina do grupo</option>
-                <?php foreach ($maquinas_do_grupo as $maquina): ?>
-                    <option value="<?php echo $maquina['id']; ?>" <?php echo ($apontamento['maquina_id'] == $maquina['id']) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($maquina['nome']); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="operador_id">Operador:</label>
-            <select id="operador_id" name="operador_id" required>
-                <?php foreach ($operadores as $operador): ?>
-                    <option value="<?php echo $operador['id']; ?>" <?php echo ($apontamento['operador_id'] == $operador['id']) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($operador['nome'] . ' (' . $operador['matricula'] . ')'); ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="quantidade_produzida">Quantidade Produzida:</label>
-            <input type="number" id="quantidade_produzida" name="quantidade_produzida" value="<?php echo htmlspecialchars($apontamento['quantidade_produzida']); ?>" step="0.01" required>
-        </div>
-        <div class="form-group">
-            <label for="data_apontamento">Data Apontamento:</label>
-            <input type="datetime-local" id="data_apontamento" name="data_apontamento" value="<?php echo date('Y-m-d\TH:i', strtotime($apontamento['data_apontamento'])); ?>" required>
-        </div>
-        <div class="form-group full-width">
-            <label for="observacoes">Observações:</label>
-            <textarea id="observacoes" name="observacoes"><?php echo htmlspecialchars($apontamento['observacoes']); ?></textarea>
-        </div>
-        <button type="submit" class="button submit">Salvar Alterações</button>
-    </form>
+    <div class="form-group">
+        <label for="maquina_id">Máquina Utilizada:</label>
+        <select id="maquina_id" name="maquina_id" required>
+            <option value="">Selecione a máquina do grupo</option>
+            <?php foreach ($maquinas_do_grupo as $maquina): ?>
+                <option value="<?php echo $maquina['id']; ?>" <?php echo ($apontamento['maquina_id'] == $maquina['id']) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($maquina['nome']); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="operador_id">Operador:</label>
+        <select id="operador_id" name="operador_id" required>
+            <?php foreach ($operadores as $operador): ?>
+                <option value="<?php echo $operador['id']; ?>" <?php echo ($apontamento['operador_id'] == $operador['id']) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($operador['nome'] . ' (' . $operador['matricula'] . ')'); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="turno_id">Turno:</label>
+        <select id="turno_id" name="turno_id" required>
+            <option value="">Selecione...</option>
+            <?php foreach ($turnos as $turno): ?>
+                <option value="<?php echo $turno['id']; ?>" <?php echo ($apontamento['turno_id'] == $turno['id']) ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($turno['nome_turno']); ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="quantidade_produzida">Quantidade Produzida:</label>
+        <input type="number" id="quantidade_produzida" name="quantidade_produzida" value="<?php echo htmlspecialchars($apontamento['quantidade_produzida']); ?>" step="0.01" required>
+    </div>
+    <div class="form-group">
+        <label for="data_apontamento">Data Apontamento:</label>
+        <input type="datetime-local" id="data_apontamento" name="data_apontamento" value="<?php echo date('Y-m-d\TH:i', strtotime($apontamento['data_apontamento'])); ?>" required>
+    </div>
+    <div class="form-group full-width">
+        <label for="observacoes">Observações:</label>
+        <textarea id="observacoes" name="observacoes"><?php echo htmlspecialchars($apontamento['observacoes']); ?></textarea>
+    </div>
+    <button type="submit" class="button submit">Salvar Alterações</button>
+</form>
 
-    <a href="apontar.php?id=<?php echo $apontamento['ordem_producao_id']; ?>" class="back-link">Voltar para a OP</a>
-</div>
+<a href="apontar.php?id=<?php echo $apontamento['ordem_producao_id']; ?>" class="back-link">Voltar para a OP</a>
 
 <?php
+$conn->close();
 require_once __DIR__ . '/../../includes/footer.php';
 ob_end_flush();
 ?>
