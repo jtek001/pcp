@@ -9,7 +9,6 @@ $conn = connectDB();
 $search_term = sanitizeInput($_GET['search_term'] ?? '');
 $filter_field = sanitizeInput($_GET['filter_field'] ?? 'op.numero_op'); 
 
-// OBSERVAÇÃO: Adicionado 'Número do Pedido' às opções de filtro.
 $filter_options = [
     'op.numero_op' => 'Número da OP',
     'p.nome' => 'Produto',
@@ -97,7 +96,7 @@ $ops = $result_fetch->fetch_all(MYSQLI_ASSOC);
                 <tr>
                     <th>Ordem</th>
                     <th>Produto</th>
-                    <th class="text-end">Programada</th>
+                    <th class="text-end">Programado</th>
                     <th class="text-end">Emissão</th>
                     <th>Status</th>
                     <th>Ações</th>
@@ -128,7 +127,7 @@ $ops = $result_fetch->fetch_all(MYSQLI_ASSOC);
                             $excluir_disabled = in_array($op['status'], ['concluida', 'em_producao']) || $op['quantidade_apontada'] > 0;
                             ?>
                             <button class="button delete small" <?php echo $excluir_disabled ? 'disabled' : ''; ?> onclick="showDeleteModal('ordens_producao', <?php echo $op['id']; ?>)">Excluir</button>
-                            <a href="imprimir_ordem.php?id=<?php echo $op['id']; ?>" target="_blank" class="button small">Imprimir</a>
+                            <a href="#" onclick="openOpModal('<?php echo BASE_URL; ?>/modules/ordens_producao/imprimir_ordem.php?id=<?php echo $op['id']; ?>'); return false;" class="button small">Imprimir</a>
                         </td>
                     </tr>
                 <?php endforeach; ?>
