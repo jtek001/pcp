@@ -29,8 +29,7 @@ try {
     $lote_numero = $log_data['lote_numero'];
 
     if ($tipo_movimentacao === 'entrada') {
-        // OBSERVAÇÃO: Nova validação para impedir estorno de entrada com saída já registrada.
-        // 1. Verifica se já existe alguma saída para este lote.
+        // Validação para impedir estorno de entrada com saída já registrada.
         $sql_check_saida = "SELECT COUNT(*) as total FROM expedicao_log WHERE lote_numero = ? AND tipo_movimentacao = 'saida'";
         $saidas_count = $conn->execute_query($sql_check_saida, [$lote_numero])->fetch_assoc()['total'] ?? 0;
 
@@ -38,18 +37,12 @@ try {
             throw new Exception("Não é possível estornar esta entrada, pois o lote já possui registros de saída.");
         }
         
-        // Estornar uma ENTRADA: devolve o item para o estoque de produção
-        
-        // 2. Devolve a quantidade ao saldo do lote de produção
+        // Devolve o item para o estoque de produção
         $conn->execute_query("UPDATE apontamentos_producao SET quantidade_produzida = quantidade_produzida + ?, deleted_at = NULL WHERE lote_numero = ?", [$quantidade, $lote_numero]);
-        
-        // 3. Subtrai do estoque da expedição
         $conn->execute_query("UPDATE produtos SET estoque_expedicao = GREATEST(0, estoque_expedicao - ?) WHERE id = ?", [$quantidade, $produto_id]);
 
     } elseif ($tipo_movimentacao === 'saida') {
-        // Estornar uma SAÍDA: devolve o item para o estoque da expedição
-        
-        // 1. Adiciona a quantidade de volta ao estoque da expedição
+        // Devolve o item para o estoque da expedição
         $conn->execute_query("UPDATE produtos SET estoque_expedicao = estoque_expedicao + ? WHERE id = ?", [$quantidade, $produto_id]);
     }
 
