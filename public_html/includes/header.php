@@ -76,6 +76,7 @@ function is_active($modules) {
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/maquinas/index.php">Máquinas</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/bom/index.php">Lista de Materiais (BoM)</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/roteiros/index.php">Roteiros de Produção</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/turnos/index.php">Cadastro de Turnos</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/fornecedores_clientes/index.php">Clientes & Fornecedores</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/operadores/index.php">Operadores</a></li>
@@ -88,7 +89,8 @@ function is_active($modules) {
                                 <i class="fas fa-dollar-sign"></i> Vendas
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownVendas">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/pedidos_venda/index.php">Pedidos de Venda</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/pedidos_venda/index.php">Pedidos de Venda</a></li>                              
+                              <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/relatorios/relatorio_pedidos_finalizados.php">Pedidos Finalizados</a></li>
                             </ul>
                         </li>
 
@@ -98,19 +100,30 @@ function is_active($modules) {
                                 <i class="fas fa-industry"></i> Produção
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownProducao">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/ordens_producao/index.php">Ordens de Produão</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/ordens_producao/index.php">Ordens de Produção</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/chao_de_fabrica/index.php">Chão de Fábrica</a></li>
+                              <li><hr class="dropdown-divider"></li>
+                              <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/relatorios/relatorio_producao_detalhado.php">Relatórios de Produção</a></li>
+                              <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/relatorios/relatorio_consumo_semiacabados.php">Consumo de Semiacabados</a></li>
+                              <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/relatorios/relatorio_consumo_materia_prima.php">Consumo de Materiais</a></li>
+                              <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/chao_de_fabrica/lista_apontamentos.php">Histórico de Apontamentos</a></li>                              
                             </ul>
                         </li>
                         
                         <!-- Menu Manutenção -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle <?php echo is_active(['manutencao']); ?>" href="#" id="navbarDropdownManutencao" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-tools"></i> Manutenço
+                                <i class="fas fa-tools"></i> Manutenção
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownManutencao">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/manutencao/grupos/index.php">Grupos de Máquinas</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/manutencao/index.php">Controle de Paradas</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/manutencao/index.php">Visão Geral</a></li>
+                              <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/manutencao/jornada/index.php">Jornada de Máquinas</a></li> 
+                              <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/manutencao/paradas/index.php">Parada de Máquinas</a></li> 
+                              <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/manutencao/motivos/index.php">Motivos de Parada</a></li> 
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/manutencao/grupos/index.php">Grupos de Máquinas</a></li>    
+                              <li><hr class="dropdown-divider"></li>
+                              <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/manutencao/relatorio_paradas.php">Relatório de Paradas</a></li>   
+                              <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/relatorios/relatorio_linha_do_tempo.php">Linha do Tempo</a></li>   
                             </ul>
                         </li>
 
@@ -120,22 +133,29 @@ function is_active($modules) {
                                 <i class="fas fa-boxes-stacked"></i> Estoque
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownEstoque">
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/estoque/index.php">Visão Geral</a></li>
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/estoque/index.php">Viso Geral</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/entradas_materiais/index.php">Entrada de Materiais</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/empenho_manual/index.php">Empenho Manual</a></li>
+                              <li><hr class="dropdown-divider"></li>
+                              <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/estoque/relatorio_estoque.php">Posição de Estoque</a></li>
+                              <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/relatorios/relatorio_inventario.php">Inventário de Produção</a></li>
+                               <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/relatorios/relatorio_inventario_expedicao.php">Inventário da Expedição</a></li>
                             </ul>
                         </li>
 
                         <!-- Menu Expedião -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle <?php echo is_active(['expedicao']); ?>" href="#" id="navbarDropdownExpedicao" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-shipping-fast"></i> Expedião
+                                <i class="fas fa-shipping-fast"></i> Expedição
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdownExpedicao">
                               <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/expedicao/index.php">Visão Geral</a></li>
                                 <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/expedicao/entrada.php">Entrada na Expedição</a></li>
-                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/expedicao/saida.php">Saída da Expediço</a></li>
-                                
+                                <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/expedicao/saida.php">Saída da Expedição</a></li>
+                              <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/expedicao/historico.php">Movimentações</a></li>
+                              <li><hr class="dropdown-divider"></li>
+                               <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/relatorios/relatorio_inventario_expedicao.php">Inventário da Expedição</a></li>
+                              <li><a class="dropdown-item" href="<?php echo BASE_URL; ?>/modules/relatorios/relatorio_produtos_expedidos.php">Produtos Expedidos</a></li>
                             </ul>
                         </li>
 
