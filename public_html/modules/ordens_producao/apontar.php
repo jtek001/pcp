@@ -8,67 +8,7 @@ require_once __DIR__ . '/../../config/database.php';
 
 $conn = connectDB();
 
-// --- LÓGICA DE EXCLUSÃO DE APONTAMENTO (PADRONIZADA) ---
-if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
-    $apontamento_id_para_excluir = (int)$_GET['delete_id'];
-    $op_id_retorno = (int)$_GET['id'];
-
-    $conn->begin_transaction();
-    try {
-        $sql_get_apontamento = "SELECT * FROM apontamentos_producao WHERE id = ?";
-        $apontamento_data = $conn->execute_query($sql_get_apontamento, [$apontamento_id_para_excluir])->fetch_assoc();
-
-        if ($apontamento_data) {
-            $quantidade_a_estornar = (float)$apontamento_data['quantidade_produzida'];
-            $op_id_do_apontamento = (int)$apontamento_data['ordem_producao_id'];
-            
-            $sql_get_op_produto = "SELECT produto_id FROM ordens_producao WHERE id = ?";
-            $produto_op_id = $conn->execute_query($sql_get_op_produto, [$op_id_do_apontamento])->fetch_assoc()['produto_id'];
-
-            $sql_reverte_estoque_acabado = "UPDATE produtos SET estoque_atual = GREATEST(0, estoque_atual - ?) WHERE id = ?";
-            $conn->execute_query($sql_reverte_estoque_acabado, [$quantidade_a_estornar, $produto_op_id]);
-
-            $sql_bom_items = "SELECT produto_filho_id, quantidade_necessaria FROM lista_materiais WHERE produto_pai_id = ? AND deleted_at IS NULL";
-            $result_bom_items = $conn->execute_query($sql_bom_items, [$produto_op_id]);
-            if ($result_bom_items) {
-                while ($bom_item = $result_bom_items->fetch_assoc()) {
-                    $material_id = (int)$bom_item['produto_filho_id'];
-                    $quantidade_material_a_reverter = (float)$bom_item['quantidade_necessaria'] * $quantidade_a_estornar;
-
-                    if ($quantidade_material_a_reverter > 0) {
-                        $conn->execute_query("UPDATE empenho_materiais SET quantidade_empenhada = quantidade_empenhada + ? WHERE produto_id = ? AND ordem_producao_id = ? AND deleted_at IS NULL", [$quantidade_material_a_reverter, $material_id, $op_id_do_apontamento]);
-                        $conn->execute_query("UPDATE produtos SET estoque_empenhado = estoque_empenhado + ? WHERE id = ?", [$quantidade_material_a_reverter, $material_id]);
-                    }
-                }
-            }
-            
-            $conn->execute_query("DELETE FROM apontamentos_producao WHERE id = ?", [$apontamento_id_para_excluir]);
-            
-            $numero_op_a_buscar = $conn->query("SELECT numero_op FROM ordens_producao WHERE id = " . $op_id_do_apontamento)->fetch_assoc()['numero_op'];
-            $obs_movimentacao = "Entrada por apontamento. Lote: " . $numero_op_a_buscar . '-' . $apontamento_id_para_excluir;
-            $conn->execute_query("DELETE FROM movimentacoes_estoque WHERE observacoes = ?", [$obs_movimentacao]);
-
-            $sql_get_op_status = "SELECT status FROM ordens_producao WHERE id = ?";
-            $op_status_result = $conn->execute_query($sql_get_op_status, [$op_id_do_apontamento])->fetch_assoc();
-            if ($op_status_result && $op_status_result['status'] === 'concluida') {
-                $sql_reopen_op = "UPDATE ordens_producao SET status = 'em_producao', data_conclusao = NULL WHERE id = ?";
-                $conn->execute_query($sql_reopen_op, [$op_id_do_apontamento]);
-            }
-
-            $conn->commit();
-            $_SESSION['message'] = "Apontamento excluído e estoques revertidos com sucesso.";
-            $_SESSION['message_type'] = "success";
-        }
-    } catch (Exception $e) {
-        $conn->rollback();
-        $_SESSION['message'] = "Erro ao excluir apontamento: " . $e->getMessage();
-        $_SESSION['message_type'] = "error";
-    }
-    header("Location: apontar.php?id=" . $op_id_retorno);
-    exit();
-}
-
-// --- Processa a criação de um novo apontamento ---
+// --- Processa a criaço de um novo apontamento ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $op_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
     
@@ -76,10 +16,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $temp_quantidade_produzida = (float) sanitizeInput($_POST['quantidade_produzida'] ?? 0.0);
     $temp_data_apontamento = isset($_POST['data_apontamento']) && $_POST['data_apontamento'] !== '' ? sanitizeInput($_POST['data_apontamento']) : date('Y-m-d H:i:s');
     $temp_operador_id = sanitizeInput($_POST['operador_id'] ?? '');
+    $temp_turno_id = filter_input(INPUT_POST, 'turno_id', FILTER_VALIDATE_INT);
     $temp_observacoes_apontamento = sanitizeInput($_POST['observacoes_apontamento'] ?? '');
 
-    if (empty($temp_maquina_id) || empty($temp_quantidade_produzida) || $temp_quantidade_produzida <= 0 || empty($temp_operador_id)) {
-        $_SESSION['message'] = "Máquina, Quantidade Produzida, Data do Apontamento e Operador são obrigatórios.";
+    if (empty($temp_maquina_id) || empty($temp_quantidade_produzida) || $temp_quantidade_produzida <= 0 || empty($temp_operador_id) || empty($temp_turno_id)) {
+        $_SESSION['message'] = "Máquina, Operador, Turno e Quantidade são obrigatórios.";
         $_SESSION['message_type'] = "error";
         header("Location: apontar.php?id=" . $op_id);
         exit();
@@ -89,8 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $op_data = $conn->execute_query("SELECT * FROM ordens_producao WHERE id = ?", [$op_id])->fetch_assoc();
         
-        $sql_apontamento = "INSERT INTO apontamentos_producao (ordem_producao_id, maquina_id, operador_id, quantidade_produzida, data_apontamento, observacoes) VALUES (?, ?, ?, ?, ?, ?)";
-        $conn->execute_query($sql_apontamento, [$op_id, $temp_maquina_id, $temp_operador_id, $temp_quantidade_produzida, $temp_data_apontamento, $temp_observacoes_apontamento]);
+        $sql_apontamento = "INSERT INTO apontamentos_producao (ordem_producao_id, maquina_id, operador_id, turno_id, quantidade_produzida, data_apontamento, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $conn->execute_query($sql_apontamento, [$op_id, $temp_maquina_id, $temp_operador_id, $temp_turno_id, $temp_quantidade_produzida, $temp_data_apontamento, $temp_observacoes_apontamento]);
         $new_apontamento_id = $conn->insert_id;
 
         $lote_numero_gerado = $op_data['numero_op'] . '-' . $new_apontamento_id;
@@ -127,7 +68,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $_SESSION['message'] = "Apontamento registrado com sucesso! Status da OP: " . $new_status;
         $_SESSION['message_type'] = "success";
-        header("Location: " . BASE_URL . "/modules/ordens_producao/gerar_etiqueta.php?id=" . $new_apontamento_id . "&op_id=" . $op_id);
+        // OBSERVAÇO: Após o sucesso, o redirecionamento agora inclui um parâmetro para abrir o modal da etiqueta.
+        header("Location: apontar.php?id=" . $op_id . "&print_label=" . $new_apontamento_id);
         exit();
 
     } catch (Exception $e) {
@@ -151,10 +93,8 @@ $sql_op = "SELECT op.*, p.nome AS produto_nome, p.codigo AS produto_codigo, gm.n
            LEFT JOIN grupos_maquinas gm ON op.grupo_id = gm.id
            WHERE op.id = ?";
 $op_data = $conn->execute_query($sql_op, [$op_id])->fetch_assoc();
-
 if (!$op_data) die("Ordem de Produção não encontrada.");
 
-// OBSERVAÇÃO: Busca apenas as máquinas do grupo definido na OP.
 $maquinas_do_grupo = [];
 if ($op_data['grupo_id']) {
     $sql_maquinas = "SELECT m.id, m.nome FROM maquinas m JOIN maquina_grupo_associacao mga ON m.id = mga.maquina_id WHERE mga.grupo_id = ? AND m.status = 'operacional' AND m.deleted_at IS NULL ORDER BY m.nome";
@@ -162,7 +102,16 @@ if ($op_data['grupo_id']) {
 }
 
 $operadores = $conn->query("SELECT id, nome, matricula FROM operadores WHERE deleted_at IS NULL AND ativo = 1 ORDER BY nome ASC")->fetch_all(MYSQLI_ASSOC);
-$apontamentos_anteriores = $conn->execute_query("SELECT ap.*, m.nome AS maquina_nome, ol.nome AS operador_nome, ol.matricula AS operador_matricula FROM apontamentos_producao ap JOIN maquinas m ON ap.maquina_id = m.id LEFT JOIN operadores ol ON ap.operador_id = ol.id WHERE ap.ordem_producao_id = ? AND ap.deleted_at IS NULL ORDER BY ap.data_apontamento DESC", [$op_id])->fetch_all(MYSQLI_ASSOC);
+$turnos = $conn->query("SELECT id, nome_turno FROM turnos WHERE deleted_at IS NULL ORDER BY nome_turno ASC")->fetch_all(MYSQLI_ASSOC);
+
+$sql_apontamentos = "SELECT ap.*, m.nome AS maquina_nome, ol.nome AS operador_nome, ol.matricula AS operador_matricula, t.nome_turno 
+                     FROM apontamentos_producao ap 
+                     JOIN maquinas m ON ap.maquina_id = m.id 
+                     LEFT JOIN operadores ol ON ap.operador_id = ol.id
+                     LEFT JOIN turnos t ON ap.turno_id = t.id
+                     WHERE ap.ordem_producao_id = ? AND ap.deleted_at IS NULL 
+                     ORDER BY ap.data_apontamento DESC";
+$apontamentos_anteriores = $conn->execute_query($sql_apontamentos, [$op_id])->fetch_all(MYSQLI_ASSOC);
 
 $quantidade_total_apontada = (float)($conn->execute_query("SELECT SUM(COALESCE(quantidade_produzida, 0.00)) AS total FROM apontamentos_producao WHERE ordem_producao_id = ? AND deleted_at IS NULL", [$op_id])->fetch_assoc()['total'] ?? 0.00);
 $necessidade_real = max(0, (float)$op_data['quantidade_produzir'] - $quantidade_total_apontada);
@@ -204,6 +153,15 @@ $necessidade_real = max(0, (float)$op_data['quantidade_produzir'] - $quantidade_
         </select>
     </div>
     <div class="form-group">
+        <label for="turno_id">Turno:</label>
+        <select id="turno_id" name="turno_id" required>
+            <option value="">Selecione...</option>
+            <?php foreach ($turnos as $turno): ?>
+                <option value="<?php echo $turno['id']; ?>"><?php echo htmlspecialchars($turno['nome_turno']); ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+    <div class="form-group">
         <label for="quantidade_produzida">Quantidade Produzida Agora:</label>
         <input type="number" id="quantidade_produzida" name="quantidade_produzida" step="0.01" required min="0.01" max="<?php echo $necessidade_real; ?>" placeholder="Ex: 50.00">
     </div>
@@ -226,10 +184,11 @@ $necessidade_real = max(0, (float)$op_data['quantidade_produzir'] - $quantidade_
     <table>
         <thead>
             <tr>
-                <th>Data/Hora</th>
+                <th>Data</th>
                 <th>Máquina</th>
                 <th>Operador</th>
-                <th>Qtd. Apontada</th>
+                <th>Turno</th>
+                <th>Qtde</th>
                 <th>Lote</th>
                 <th>Ações</th>
             </tr>
@@ -240,12 +199,13 @@ $necessidade_real = max(0, (float)$op_data['quantidade_produzir'] - $quantidade_
                     <td><?php echo date('d/m/Y H:i', strtotime($apontamento['data_apontamento'])); ?></td>
                     <td><?php echo htmlspecialchars($apontamento['maquina_nome'] ?? 'N/A'); ?></td>
                     <td><?php echo htmlspecialchars($apontamento['operador_nome'] ?? 'N/A') . ' (' . htmlspecialchars($apontamento['operador_matricula'] ?? 'N/A') . ')'; ?></td>
+                    <td><?php echo htmlspecialchars($apontamento['nome_turno'] ?? 'N/A'); ?></td>
                     <td><?php echo number_format($apontamento['quantidade_produzida'], 2, ',', '.'); ?></td>
                     <td><?php echo htmlspecialchars($apontamento['lote_numero'] ?? 'N/A'); ?></td>
                     <td>
                         <a href="editar_apontamento.php?id=<?php echo $apontamento['id']; ?>" class="button edit small">Editar</a>
-                        <a href="apontar.php?id=<?php echo $op_id; ?>&delete_id=<?php echo $apontamento['id']; ?>" class="button delete small" onclick="return confirm('Tem certeza que deseja excluir este apontamento? A ação irá reverter o estoque e os empenhos.');">Excluir</a>
-                        <a href="<?php echo BASE_URL; ?>/modules/ordens_producao/gerar_etiqueta.php?id=<?php echo $apontamento['id']; ?>" target="_blank" class="button small">Imprimir</a>
+                        <button class="button delete small" onclick="showDeleteModal('apontamentos_producao_op', <?php echo $apontamento['id']; ?>)">Excluir</button>
+                        <a href="" onclick="openLabelModal('<?php echo BASE_URL; ?>/modules/ordens_producao/gerar_etiqueta.php?id=<?php echo $apontamento['id']; ?>'); return false;" class="button small">Imprimir</a>
                     </td>
                 </tr>
             <?php endforeach; ?>
