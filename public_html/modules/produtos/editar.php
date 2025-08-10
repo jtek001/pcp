@@ -52,7 +52,7 @@ $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
 
 // Se o ID for inválido, redireciona de volta para a lista com uma mensagem de erro
 if ($id <= 0) {
-    header("Location: " . BASE_URL . "/modules/produtos/index.php?message=" . urlencode("ID do produto inválido para edição.") . "&type=error");
+    header("Location: " . BASE_URL . "/modules/produtos/index.php?message=" . urlencode("ID do produto inválido para ediço.") . "&type=error");
     exit();
 }
 
@@ -79,7 +79,7 @@ if ($stmt_select) {
     $message_type = "error";
 }
 
-// --- Lógica para processar a submissão do formulário de edição ---
+// --- Lógica para processar a submissão do formulário de ediço ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $id > 0) {
     // Sanitiza e valida as entradas do usuário, garantindo que nunca sejam NULL antes de serem passadas para a query
     $temp_nome = sanitizeInput(isset($_POST['nome']) ? $_POST['nome'] : '');
@@ -357,6 +357,10 @@ $post_values = $_POST ?? [];
         </div>
 
         <div class="form-group">
+            <label for="comprimento">Comprimento:</label>
+            <input type="number" id="comprimento" name="comprimento" step="0.01" value="<?php echo htmlspecialchars($post_values['comprimento'] ?? $produto_data['comprimento'] ?? ''); ?>" required placeholder="Ex: 100.00">
+        </div>
+        <div class="form-group">
             <label for="perimetro_mm">Perímetro (mm):</label>
             <input type="number" id="perimetro_mm" name="perimetro_mm" step="0.01" value="<?php echo htmlspecialchars($post_values['perimetro_mm'] ?? $produto_data['perimetro_mm'] ?? ''); ?>" placeholder="Ex: 50.00">
         </div>
@@ -366,10 +370,6 @@ $post_values = $_POST ?? [];
             <input type="number" id="area_perfil_mm2" name="area_perfil_mm2" step="0.01" value="<?php echo htmlspecialchars($post_values['area_perfil_mm2'] ?? $produto_data['area_perfil_mm2'] ?? ''); ?>" placeholder="Ex: 25.00">
         </div>
 
-        <div class="form-group">
-            <label for="comprimento">Comprimento:</label>
-            <input type="number" id="comprimento" name="comprimento" step="0.01" value="<?php echo htmlspecialchars($post_values['comprimento'] ?? $produto_data['comprimento'] ?? ''); ?>" placeholder="Ex: 100.00">
-        </div>
 
         <div class="form-group">
             <label for="altura_embalagem">Altura Embalagem:</label>
@@ -496,7 +496,7 @@ $post_values = $_POST ?? [];
                 const textInputElement = document.getElementById(fieldName + '_text');
 
                 if (textInputElement.style.display === 'block') {
-                    // Se o input de texto está visível, o select é desabilitado
+                    // Se o input de texto est visível, o select é desabilitado
                     selectElement.removeAttribute('name');
                     textInputElement.setAttribute('name', fieldName);
                 } else {
