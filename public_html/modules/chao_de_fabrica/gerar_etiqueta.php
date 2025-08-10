@@ -100,7 +100,7 @@ if (!$etiqueta_data): ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Etiqueta de Produção - Lote <?php echo $lote; ?></title>
     <!-- Biblioteca JsBarcode para gerar o código de barras -->
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="../../public/js/JsBarcode.all.min.js"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -213,7 +213,7 @@ if (!$etiqueta_data): ?>
         }
     </style>
 </head>
-<body onload="window.print()">
+<body >
     <div class="label-container">
         <div class="header-section">
             <div class="company-name"><img src="../../public/img/logo-etiq.png" height="40" /></div>
