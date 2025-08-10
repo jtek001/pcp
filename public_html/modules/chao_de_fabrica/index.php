@@ -19,7 +19,6 @@ if (isset($_SESSION['message'])) {
 $search_term = sanitizeInput($_GET['search_term'] ?? '');
 $filter_field = sanitizeInput($_GET['filter_field'] ?? 'op.numero_op'); 
 
-// OBSERVAÇÃO: Filtro de 'Número do Pedido' re-adicionado
 $filter_options = [
     'op.numero_op' => 'Número da OP',
     'p.nome' => 'Produto',
@@ -71,7 +70,10 @@ $ops_list = $conn->execute_query($sql_fetch, $params_fetch)->fetch_all(MYSQLI_AS
 ?>
 
 <div class="container mt-4">
-    <h2><i class="fas fa-cogs"></i> Chão de Fábrica - Apontamento de Produção</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-cogs"></i> Chão de Fábrica - Ordens de Produção</h2>
+        <a href="lista_apontamentos.php" class="button"><i class="fas fa-history"></i> Ver Histórico de Apontamentos</a>
+    </div>
 
     <?php if ($message): ?>
         <div class="message <?php echo htmlspecialchars($message_type); ?>">
