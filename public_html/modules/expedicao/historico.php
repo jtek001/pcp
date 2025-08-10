@@ -59,7 +59,7 @@ $movimentacoes = $conn->query($sql)->fetch_all(MYSQLI_ASSOC);
                     <td><?php echo htmlspecialchars($mov['nota_fiscal_saida'] ?? 'N/A'); ?></td>
                     <td><?php echo htmlspecialchars($mov['operador_nome'] ?? 'N/A'); ?></td>
                     <td>
-                        <a href="estornar.php?id=<?php echo $mov['id']; ?>" class="button delete small" onclick="return confirm('Tem certeza que deseja estornar esta movimentação? A ação é irreversível.');">Estornar</a>
+                        <button class="button delete small" onclick="showDeleteModal('expedicao_log', <?php echo $mov['id']; ?>)">Estornar</button>
                     </td>
                 </tr>
             <?php endforeach; ?>
