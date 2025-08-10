@@ -100,7 +100,7 @@ if (!$etiqueta_data): ?>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Etiqueta de Produção - Lote <?php echo $lote; ?></title>
     <!-- Biblioteca JsBarcode para gerar o código de barras -->
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="../../public/js/JsBarcode.all.min.js"></script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -213,7 +213,7 @@ if (!$etiqueta_data): ?>
         }
     </style>
 </head>
-<body onload="window.print()">
+<body>
     <div class="label-container">
         <div class="header-section">
             <div class="company-name"><img src="../../public/img/logo-etiq.png" height="40" /></div>
@@ -255,7 +255,8 @@ if (!$etiqueta_data): ?>
         </div>
     </div>
     <div class="no-print" style="text-align: center; margin-top: 20px;">
-        <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Imprimir Novamente</button>
+        <button onclick="window.print()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Imprimir</button>
+        
         <?php if ($op_id_from_get > 0): ?>
             <a href="<?php echo BASE_URL; ?>/modules/ordens_producao/apontar.php?id=<?php echo htmlspecialchars($op_id_from_get); ?>" style="padding: 10px 20px; font-size: 16px; cursor: pointer; text-decoration: none; background-color: #007bff; color: white; border-radius: 5px; margin-left: 10px;">Voltar à OP</a>
         <?php endif; ?>
