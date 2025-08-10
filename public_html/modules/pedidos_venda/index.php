@@ -59,7 +59,6 @@ $pedidos = $conn->execute_query($sql, [$items_per_page, $offset])->fetch_all(MYS
                     <td class="text-end">R$ <?php echo number_format($pedido['valor_total'], 2, ',', '.'); ?></td>
                     <td class="text-center">
                         <?php
-                        // OBSERVAÇÃO: Lógica para exibir ícones de status
                         if ($pedido['status'] === 'Concluido') {
                             echo '<i class="fas fa-check-circle text-success" title="Concluído" style="font-size: 1.3em;"></i>';
                         } elseif ($pedido['status'] === 'Cancelado') {
@@ -74,12 +73,9 @@ $pedidos = $conn->execute_query($sql, [$items_per_page, $offset])->fetch_all(MYS
                     <td>
                         <a href="editar.php?id=<?php echo $pedido['id']; ?>" class="button small">Gerir Itens</a>
                         <?php
-                        // Lógica para desativar o botão de exclusão
                         $is_deletable = !in_array($pedido['status'], ['Concluido', 'Cancelado']);
-                        $disabled_class = $is_deletable ? '' : 'disabled';
-                        $onclick_action = $is_deletable ? "return confirm('Tem certeza que deseja excluir este pedido?');" : "return false;";
                         ?>
-                        <a href="excluir.php?id=<?php echo $pedido['id']; ?>" class="button delete small <?php echo $disabled_class; ?>" onclick="<?php echo $onclick_action; ?>">Excluir</a>
+                        <button class="button delete small" <?php echo $is_deletable ? '' : 'disabled'; ?> onclick="showDeleteModal('pedidos_venda', <?php echo $pedido['id']; ?>)">Excluir</button>
                     </td>
                 </tr>
             <?php endforeach; ?>
@@ -95,5 +91,4 @@ $pedidos = $conn->execute_query($sql, [$items_per_page, $offset])->fetch_all(MYS
 
 <?php
 require_once __DIR__ . '/../../includes/footer.php';
-$conn->close();
 ?>
