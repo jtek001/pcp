@@ -13,7 +13,7 @@ $lote_numero = sanitizeInput($_GET['lote'] ?? '');
 
 if (empty($lote_numero)) {
     http_response_code(400); // Bad Request
-    echo json_encode(['error' => 'O número do lote é obrigatório.']);
+    echo json_encode(['error' => 'O número do lote  obrigatório.']);
     exit;
 }
 
@@ -28,8 +28,7 @@ $sql = "SELECT
         JOIN produtos p ON op.produto_id = p.id
         WHERE 
             ap.lote_numero = ?
-            AND ap.quantidade_produzida > 0
-            AND ap.deleted_at IS NULL
+            AND ap.data_consumo IS NULL
         LIMIT 1";
 
 try {
