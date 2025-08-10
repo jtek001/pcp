@@ -38,7 +38,7 @@ if (isset($_GET['filtrar'])) {
                      FROM apontamentos_producao ap
                      JOIN ordens_producao op ON ap.ordem_producao_id = op.id
                      JOIN produtos p ON op.produto_id = p.id
-                     WHERE ap.deleted_at IS NULL AND ap.quantidade_produzida > 0";
+                     WHERE ap.deleted_at IS NULL AND ap.data_consumo IS NULL";
 
         if (!empty($_GET['grupo'])) {
             $sql_base .= " AND p.grupo = ?";
@@ -180,7 +180,7 @@ if (isset($_GET['filtrar'])) {
     </div>
     <?php endif; ?>
     
-    <a href="index.php" class="back-link mt-4">Voltar ao Portal de Relatórios</a>
+    <a href="index.php" class="back-link mt-4">Voltar ao Portal de Relatrios</a>
 </div>
 
 <?php
