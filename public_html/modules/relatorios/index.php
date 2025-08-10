@@ -59,6 +59,18 @@ $relatorios_disponiveis = [
         'descricao' => 'Analisa todos os produtos que j saíram para os clientes.',
         'link' => 'relatorio_produtos_expedidos.php',
         'icone' => 'fa-shipping-fast'
+    ],
+  [
+        'titulo' => 'Linha do Tempo da Máquina',
+        'descricao' => 'Visualize todos os eventos de uma máquina (jornadas, produções, paradas) em ordem cronológica.',
+        'link' => 'relatorio_linha_do_tempo.php',
+        'icone' => 'fa-history'
+    ],
+    [
+        'titulo' => 'Pedidos Finalizados',
+        'descricao' => 'Lista todos os pedidos de venda que já foram concluídos e entregues.',
+        'link' => 'relatorio_pedidos_finalizados.php',
+        'icone' => 'fa-check-double'
     ]
 ];
 
@@ -66,7 +78,7 @@ $relatorios_disponiveis = [
 
 <div class="container mt-4">
     <h2><i class="fas fa-chart-bar"></i> Módulo de Relatórios</h2>
-    <p class="lead">Selecione um dos relatórios abaixo para visualizar os dados de produção e controle.</p>
+    <p class="lead">Selecione um dos relatórios abaixo para visualizar os dados de produão e controle.</p>
 
     <div class="row mt-4">
         <?php foreach ($relatorios_disponiveis as $relatorio): ?>
