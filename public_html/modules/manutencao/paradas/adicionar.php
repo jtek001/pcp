@@ -1,7 +1,7 @@
 <?php
 ob_start();
 session_start();
-// OBSERVAÇÃO: Fuso horrio definido para garantir a hora local correta.
+// OBSERVAÇÃO: Fuso horário definido para garantir a hora local correta.
 date_default_timezone_set('America/Sao_Paulo');
 require_once __DIR__ . '/../../../config/database.php';
 
@@ -11,11 +11,13 @@ $conn = connectDB();
 $maquinas = $conn->query("SELECT id, nome FROM maquinas WHERE deleted_at IS NULL ORDER BY nome")->fetch_all(MYSQLI_ASSOC);
 $motivos = $conn->query("SELECT id, nome, codigo, grupo FROM motivos_parada WHERE deleted_at IS NULL ORDER BY codigo ASC")->fetch_all(MYSQLI_ASSOC);
 $operadores = $conn->query("SELECT id, nome FROM operadores WHERE deleted_at IS NULL AND ativo = 1 ORDER BY nome")->fetch_all(MYSQLI_ASSOC);
+$turnos = $conn->query("SELECT id, nome_turno FROM turnos WHERE deleted_at IS NULL ORDER BY nome_turno ASC")->fetch_all(MYSQLI_ASSOC);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $maquina_id = filter_input(INPUT_POST, 'maquina_id', FILTER_VALIDATE_INT);
     $motivo_id = filter_input(INPUT_POST, 'motivo_id', FILTER_VALIDATE_INT);
     $operador_id = filter_input(INPUT_POST, 'operador_id', FILTER_VALIDATE_INT);
+    $turno_id = filter_input(INPUT_POST, 'turno_id', FILTER_VALIDATE_INT); // Campo novo
     $data_hora_inicio = sanitizeInput($_POST['data_hora_inicio']);
     $data_hora_fim = sanitizeInput($_POST['data_hora_fim']) ?: null;
     $observacoes = sanitizeInput($_POST['observacoes']);
@@ -29,12 +31,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $duracao_minutos = ($diferenca->days * 24 * 60) + ($diferenca->h * 60) + $diferenca->i;
     }
 
-    if ($maquina_id && $motivo_id && $data_hora_inicio) {
+    if ($maquina_id && $motivo_id && $data_hora_inicio && $turno_id) {
         $conn->begin_transaction();
         try {
             // 1. Inserir o registo da parada
-            $sql = "INSERT INTO paradas_maquina (maquina_id, motivo_id, operador_id, data_hora_inicio, data_hora_fim, duracao_minutos, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            $conn->execute_query($sql, [$maquina_id, $motivo_id, $operador_id, $data_hora_inicio, $data_hora_fim, $duracao_minutos, $observacoes]);
+            $sql = "INSERT INTO paradas_maquina (maquina_id, motivo_id, operador_id, turno_id, data_hora_inicio, data_hora_fim, duracao_minutos, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $conn->execute_query($sql, [$maquina_id, $motivo_id, $operador_id, $turno_id, $data_hora_inicio, $data_hora_fim, $duracao_minutos, $observacoes]);
             
             // O status da máquina só é alterado se a parada for registrada sem data de fim.
             if (empty($data_hora_fim)) {
@@ -66,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['message_type'] = "error";
         }
     } else {
-        $_SESSION['message'] = "Máquina, Motivo e Data/Hora de Início são campos obrigatórios.";
+        $_SESSION['message'] = "Máquina, Motivo, Turno e Data/Hora de Início são campos obrigatórios.";
         $_SESSION['message_type'] = "warning";
     }
     
@@ -107,12 +109,13 @@ require_once __DIR__ . '/../../../includes/header.php';
             </select>
         </div>
         <div class="form-group">
-            <label for="data_hora_inicio">Data e Hora de Início</label>
-            <input type="datetime-local" name="data_hora_inicio" id="data_hora_inicio" value="<?php echo date('Y-m-d\TH:i'); ?>" required>
-        </div>
-        <div class="form-group">
-            <label for="data_hora_fim">Data e Hora de Fim (opcional)</label>
-            <input type="datetime-local" name="data_hora_fim" id="data_hora_fim">
+            <label for="turno_id">Turno</label>
+            <select name="turno_id" id="turno_id" required>
+                <option value="">Selecione o turno</option>
+                <?php foreach($turnos as $turno): ?>
+                    <option value="<?php echo $turno['id']; ?>"><?php echo htmlspecialchars($turno['nome_turno']); ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="form-group">
             <label for="operador_id">Operador</label>
@@ -122,6 +125,14 @@ require_once __DIR__ . '/../../../includes/header.php';
                     <option value="<?php echo $operador['id']; ?>"><?php echo htmlspecialchars($operador['nome']); ?></option>
                 <?php endforeach; ?>
             </select>
+        </div>
+        <div class="form-group">
+            <label for="data_hora_inicio">Data e Hora de Início</label>
+            <input type="datetime-local" name="data_hora_inicio" id="data_hora_inicio" value="<?php echo date('Y-m-d\TH:i'); ?>" required>
+        </div>
+        <div class="form-group">
+            <label for="data_hora_fim">Data e Hora de Fim (opcional)</label>
+            <input type="datetime-local" name="data_hora_fim" id="data_hora_fim">
         </div>
         <div class="form-group full-width">
             <label for="observacoes">Observações</label>
