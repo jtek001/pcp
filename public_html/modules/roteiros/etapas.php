@@ -17,7 +17,6 @@ if (!$roteiro_id) {
 // Lógica para adicionar uma nova etapa
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_etapa'])) {
     $sequencia = filter_input(INPUT_POST, 'sequencia', FILTER_VALIDATE_INT);
-    // OBSERVAÇÃO: Campo alterado para grupo_id
     $grupo_id = filter_input(INPUT_POST, 'grupo_id', FILTER_VALIDATE_INT);
     $descricao_operacao = sanitizeInput($_POST['descricao_operacao']);
     $tempo_setup = filter_input(INPUT_POST, 'tempo_setup_min', FILTER_VALIDATE_FLOAT);
@@ -25,7 +24,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_etapa'])) {
 
     if ($sequencia && $grupo_id && !empty($descricao_operacao)) {
         try {
-            // OBSERVAÇÃO: A inserço agora usa grupo_id
             $sql = "INSERT INTO roteiro_etapas (roteiro_id, sequencia, grupo_id, descricao_operacao, tempo_setup_min, tempo_producao_min) VALUES (?, ?, ?, ?, ?, ?)";
             $conn->execute_query($sql, [$roteiro_id, $sequencia, $grupo_id, $descricao_operacao, $tempo_setup, $tempo_producao]);
             $_SESSION['message'] = "Etapa adicionada com sucesso!";
@@ -37,22 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_etapa'])) {
     } else {
         $_SESSION['message'] = "Todos os campos marcados com * são obrigatórios.";
         $_SESSION['message_type'] = "warning";
-    }
-    header("Location: etapas.php?roteiro_id=" . $roteiro_id);
-    exit();
-}
-
-// Lógica para excluir uma etapa
-if (isset($_GET['delete_id']) && is_numeric($_GET['delete_id'])) {
-    $etapa_id = (int)$_GET['delete_id'];
-    try {
-        $sql_delete = "UPDATE roteiro_etapas SET deleted_at = NOW() WHERE id = ?";
-        $conn->execute_query($sql_delete, [$etapa_id]);
-        $_SESSION['message'] = "Etapa excluída com sucesso.";
-        $_SESSION['message_type'] = "success";
-    } catch (mysqli_sql_exception $e) {
-        $_SESSION['message'] = "Erro ao excluir etapa: " . $e->getMessage();
-        $_SESSION['message_type'] = "error";
     }
     header("Location: etapas.php?roteiro_id=" . $roteiro_id);
     exit();
@@ -168,7 +150,7 @@ $grupos_maquinas = $conn->query("SELECT id, nome_grupo FROM grupos_maquinas WHER
                         <td class="text-end"><?php echo number_format($etapa['tempo_producao_min'], 2, ',', '.'); ?></td>
                         <td>
                             <a href="editar_etapa.php?id=<?php echo $etapa['id']; ?>" class="button edit small">Editar</a>
-                            <a href="etapas.php?roteiro_id=<?php echo $roteiro_id; ?>&delete_id=<?php echo $etapa['id']; ?>" class="button delete small" onclick="return confirm('Tem certeza que deseja excluir esta etapa?');">Excluir</a>
+                            <button class="button delete small" onclick="showDeleteModal('roteiro_etapas', <?php echo $etapa['id']; ?>)">Excluir</button>
                         </td>
                     </tr>
                     <?php endforeach; ?>
