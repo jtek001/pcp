@@ -51,20 +51,20 @@ function gerarOpsFilhasEReservas($conn, $op_pai_id, $produto_pai_id, $quantidade
 
                     if ($necessidade_liquida > 0) {
                         // LÓGICA PARA HERDAR DADOS DA OP MÃE
-                        $maquina_filha_id = null;
+                        $grupo_filho_id = null;
                         $sql_roteiro_etapa = "SELECT grupo_id FROM roteiro_etapas WHERE roteiro_id = ? ORDER BY sequencia ASC LIMIT 1";
                         $result_etapa = $conn->execute_query($sql_roteiro_etapa, [$roteiro_check['id']]);
                         if ($etapa = $result_etapa->fetch_assoc()) {
-                            // Este ID é de um grupo, não de uma máquina. A OP filha pode ser associada ao grupo
-                            $maquina_filha_id = $etapa['grupo_id'];
+                            $grupo_filho_id = $etapa['grupo_id'];
                         }
 
                         $data_conclusao_filha = $data_conclusao_pai ? date('Y-m-d', strtotime($data_conclusao_pai . ' -2 days')) : null;
                         $numero_op_filha = generateUniqueOpNumber($conn);
                         $data_emissao_filha = date('Y-m-d');
                         
-                        $params_op_filha = [$op_pai_id, $numero_op_filha, $numero_pedido_pai, $material_id, $maquina_filha_id, $necessidade_liquida, $data_emissao_filha, $data_conclusao_filha];
-                        $conn->execute_query("INSERT INTO ordens_producao (op_mae_id, numero_op, numero_pedido, produto_id, maquina_id, quantidade_produzir, data_emissao, data_prevista_conclusao, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pendente')", $params_op_filha);
+                        // CORREÇÃO: A query agora insere o grupo_id na coluna correta.
+                        $params_op_filha = [$op_pai_id, $numero_op_filha, $numero_pedido_pai, $material_id, $grupo_filho_id, $necessidade_liquida, $data_emissao_filha, $data_conclusao_filha];
+                        $conn->execute_query("INSERT INTO ordens_producao (op_mae_id, numero_op, numero_pedido, produto_id, grupo_id, quantidade_produzir, data_emissao, data_prevista_conclusao, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pendente')", $params_op_filha);
                         $op_filha_id = $conn->insert_id;
                         $ops_criadas++;
                         
@@ -90,7 +90,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $temp_data_prevista_conclusao = !empty($_POST['data_prevista_conclusao']) ? sanitizeInput($_POST['data_prevista_conclusao']) : null;
     $temp_observacoes = sanitizeInput($_POST['observacoes'] ?? '');
 
-    // OBSERVAÇÃO: Validação agora inclui o número do pedido. A opção "avulso" foi removida.
     if (empty($temp_numero_op) || empty($temp_produto_id) || empty($temp_quantidade_produzir) || empty($temp_data_emissao) || empty($temp_numero_pedido)) {
         $_SESSION['message'] = "Todos os campos obrigatórios devem ser preenchidos, incluindo a seleção de um Pedido de Venda aprovado.";
         $_SESSION['message_type'] = "error";
