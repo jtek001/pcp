@@ -106,8 +106,8 @@ $motivos = $result_fetch->fetch_all(MYSQLI_ASSOC);
                         <td><?php echo htmlspecialchars($motivo['descricao']); ?></td>
                         <td>
                             <a href="editar.php?id=<?php echo $motivo['id']; ?>" class="button edit small">Editar</a>
-                            <!-- ALTERAÇÃO: O botão agora é um link com confirmação JS padrão -->
-                            <a href="excluir.php?id=<?php echo $motivo['id']; ?>" class="button delete small" onclick="return confirm('Tem certeza que deseja excluir este motivo?');">Excluir</a>
+                            <!-- OBSERVAÇÃO: Botão atualizado para usar o deleteModal -->
+                            <button class="button delete small" onclick="showDeleteModal('motivos_parada', <?php echo $motivo['id']; ?>)">Excluir</button>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -134,6 +134,7 @@ $motivos = $result_fetch->fetch_all(MYSQLI_ASSOC);
     <?php else: ?>
         <p style="text-align: center; margin-top: 20px;">Nenhum motivo de parada encontrado.</p>
     <?php endif; ?>
+        <a href="../index.php" class="back-link mt-4">Voltar ao Portal de Manutenção</a>
 </div>
 
 <?php
