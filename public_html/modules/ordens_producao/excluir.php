@@ -1,86 +1,64 @@
 <?php
-// modules/ordens_producao/excluir.php
-// Esta página é responsável por "excluir" (soft delete) uma Ordem de Produção do banco de dados e redirecionar.
-
-// Habilita a exibição de todos os erros PHP para depuração (REMOVER EM PRODUÇÃO)
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
-// Inclui os arquivos de configuração (para ter acesso à função connectDB e sanitizeInput)
+session_start();
 require_once __DIR__ . '/../../config/database.php';
 
-// Variáveis para armazenar a mensagem de feedback
-$message = '';
-$message_type = '';
+$conn = connectDB();
+$id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
-// Pega o ID da Ordem de Produção da URL (GET)
-$id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-
-// Verifica se o ID é válido
-if ($id > 0) {
-    // Conecta ao banco de dados
-    $conn = connectDB();
-
-    $conn->begin_transaction(); // Inicia a transação
-    try {
-        // --- 1. Obter todos os empenhos relacionados a esta OP antes de excluí-la ---
-        $empenhos_da_op = [];
-        $sql_get_empenhos = "SELECT id, produto_id, quantidade_empenhada FROM empenho_materiais WHERE ordem_producao_id = ? AND deleted_at IS NULL";
-        $result_empenhos = $conn->execute_query($sql_get_empenhos, [$id]);
-
-        if ($result_empenhos) {
-            while ($row_empenho = $result_empenhos->fetch_assoc()) {
-                $empenhos_da_op[] = $row_empenho;
-            }
-            $result_empenhos->free();
-        } else {
-            // Se houver um erro ao buscar empenhos, logar, mas não necessariamente abortar (depende da criticidade)
-            error_log("Erro ao buscar empenhos para OP " . $id . ": " . $conn->error);
-        }
-
-        // --- 2. Desfazer o empenho nos produtos e marcar os empenhos como deleted_at ---
-        if (!empty($empenhos_da_op)) {
-            foreach ($empenhos_da_op as $empenho) {
-                // Diminuir o estoque_empenhado do produto
-                $sql_update_produto_empenhado = "UPDATE produtos SET estoque_empenhado = estoque_empenhado - ? WHERE id = ?";
-                $conn->execute_query($sql_update_produto_empenhado, [$empenho['quantidade_empenhada'], $empenho['produto_id']]);
-
-                // Marcar o registro de empenho como deleted_at
-                $sql_soft_delete_empenho = "UPDATE empenho_materiais SET deleted_at = NOW() WHERE id = ?";
-                $conn->execute_query($sql_soft_delete_empenho, [$empenho['id']]);
-            }
-        }
-
-        // --- 3. Realizar o "soft delete" na Ordem de Produção ---
-        $sql = "UPDATE ordens_producao SET deleted_at = NOW() WHERE id = ?";
-        $params = [$id];
-        $result_update = $conn->execute_query($sql, $params);
-
-        if ($result_update === TRUE) {
-            $message = "Ordem de Produção e empenhos relacionados excluídos (logicamente) com sucesso!";
-            $message_type = "success";
-        } else {
-            throw new mysqli_sql_exception("Erro ao marcar Ordem de Produção como excluída: " . $conn->error);
-        }
-
-        $conn->commit(); // Confirma a transação se tudo deu certo
-
-    } catch (mysqli_sql_exception $e) {
-        $conn->rollback(); // Reverte a transação em caso de erro
-        $message = "Erro na transação de exclusão da Ordem de Produção/Empenho: " . $e->getMessage();
-        $message_type = "error";
-        error_log("Erro fatal na transação de exclusão da OP/Empenho: " . $e->getMessage());
-    }
-
-    // Fecha a conexão com o banco de dados
-    $conn->close();
-} else {
-    // Se o ID não for válido, define uma mensagem de erro
-    $message = "ID da Ordem de Produção inválido para exclusão.";
-    $message_type = "error";
+if (!$id) {
+    $_SESSION['message'] = "ID da Ordem de Produção inválido.";
+    $_SESSION['message_type'] = "error";
+    header("Location: index.php");
+    exit();
 }
 
-// Redireciona de volta para a página de listagem de OPs, passando a mensagem de feedback
-header("Location: " . BASE_URL . "/modules/ordens_producao/index.php?message=" . urlencode($message) . "&type=" . urlencode($message_type));
+$conn->begin_transaction();
+try {
+    // 1. Verificação de segurança: A OP já teve produção apontada?
+    $sql_check_apontamentos = "SELECT COUNT(id) as total FROM apontamentos_producao WHERE ordem_producao_id = ? AND deleted_at IS NULL";
+    $apontamentos_count = $conn->execute_query($sql_check_apontamentos, [$id])->fetch_assoc()['total'] ?? 0;
+
+    if ($apontamentos_count > 0) {
+        throw new Exception("Não é possível excluir esta OP, pois ela já possui apontamentos de produção registrados.");
+    }
+
+    // 2. Verificação de segurança: A OP possui OPs filhas ativas?
+    $sql_check_children = "SELECT COUNT(id) as total FROM ordens_producao WHERE op_mae_id = ? AND deleted_at IS NULL";
+    $children_count = $conn->execute_query($sql_check_children, [$id])->fetch_assoc()['total'] ?? 0;
+
+    if ($children_count > 0) {
+        throw new Exception("Não é possível excluir esta OP, pois ela possui OPs filhas ativas. Exclua as OPs filhas primeiro.");
+    }
+
+    // 3. Busca e reverte todos os empenhos associados a esta OP
+    $sql_get_empenhos = "SELECT produto_id, quantidade_empenhada FROM empenho_materiais WHERE ordem_producao_id = ? AND deleted_at IS NULL";
+    $empenhos = $conn->execute_query($sql_get_empenhos, [$id])->fetch_all(MYSQLI_ASSOC);
+
+    foreach ($empenhos as $empenho) {
+        $produto_id = $empenho['produto_id'];
+        $quantidade = $empenho['quantidade_empenhada'];
+
+        // Devolve a quantidade ao estoque empenhado do produto
+        $conn->execute_query("UPDATE produtos SET estoque_empenhado = GREATEST(0, estoque_empenhado - ?) WHERE id = ?", [$quantidade, $produto_id]);
+    }
+
+    // 4. Marca os registros de empenho como excluídos (soft delete)
+    $conn->execute_query("UPDATE empenho_materiais SET deleted_at = NOW() WHERE ordem_producao_id = ?", [$id]);
+
+    // 5. Finalmente, marca a Ordem de Produção como excluída (soft delete)
+    $sql_delete_op = "UPDATE ordens_producao SET deleted_at = NOW() WHERE id = ?";
+    $conn->execute_query($sql_delete_op, [$id]);
+    
+    $conn->commit();
+    $_SESSION['message'] = "Ordem de Produção e seus empenhos foram excluídos com sucesso.";
+    $_SESSION['message_type'] = "success";
+
+} catch (Exception $e) {
+    $conn->rollback();
+    $_SESSION['message'] = "Erro ao excluir Ordem de Produção: " . $e->getMessage();
+    $_SESSION['message_type'] = "error";
+}
+
+header("Location: index.php");
 exit();
 ?>
