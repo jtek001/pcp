@@ -1,8 +1,10 @@
 <?php
 // modules/entradas_materiais/index.php
+
+// OBSERVAÇÃO: A lógica foi reestruturada para corrigir o erro de carregamento.
+ob_start();
 session_start();
 require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../includes/header.php';
 
 $conn = connectDB();
 
@@ -10,7 +12,6 @@ $conn = connectDB();
 $search_term = sanitizeInput($_GET['search_term'] ?? '');
 $filter_field = sanitizeInput($_GET['filter_field'] ?? 'p.nome'); 
 
-// OBSERVAÇÃO: Adicionado 'Código do Produto' às opções de filtro.
 $filter_options = [
     'p.nome' => 'Nome do Produto',
     'p.codigo' => 'Código do Produto',
@@ -34,28 +35,34 @@ if (!empty($search_term) && array_key_exists($filter_field, $filter_options)) {
 
 // Contar o total de Entradas
 $sql_count = "SELECT COUNT(mi.id) AS total_items 
-              FROM materiais_insumos_entrada mi 
-              JOIN produtos p ON mi.produto_id = p.id 
-              LEFT JOIN fornecedores_clientes_lookup f ON mi.fornecedor_id = f.id" . $where_clause;
+            FROM materiais_insumos_entrada mi 
+            JOIN produtos p ON mi.produto_id = p.id 
+            LEFT JOIN fornecedores_clientes_lookup f ON mi.fornecedor_id = f.id" . $where_clause;
 $result_count = $conn->execute_query($sql_count, $params);
 $total_items = $result_count->fetch_assoc()['total_items'] ?? 0;
 $total_pages = ceil($total_items / $items_per_page);
 
 // Buscar as Entradas para a página atual
 $sql_fetch = "SELECT mi.id, mi.data_entrada, p.nome AS produto_nome, p.codigo AS produto_codigo, mi.quantidade, mi.numero_nota_fiscal, mi.data_emissao_nota, f.nome AS fornecedor_nome 
-              FROM materiais_insumos_entrada mi 
-              JOIN produtos p ON mi.produto_id = p.id 
-              LEFT JOIN fornecedores_clientes_lookup f ON mi.fornecedor_id = f.id" . $where_clause . " 
-              ORDER BY mi.data_entrada DESC 
-              LIMIT ? OFFSET ?";
+            FROM materiais_insumos_entrada mi 
+            JOIN produtos p ON mi.produto_id = p.id 
+            LEFT JOIN fornecedores_clientes_lookup f ON mi.fornecedor_id = f.id" . $where_clause . " 
+            ORDER BY mi.data_entrada DESC 
+            LIMIT ? OFFSET ?";
 $params_fetch = array_merge($params, [$items_per_page, $offset]);
 $entradas = $conn->execute_query($sql_fetch, $params_fetch)->fetch_all(MYSQLI_ASSOC);
+
+// A página só começa a ser desenhada a partir daqui.
+require_once __DIR__ . '/../../includes/header.php';
 ?>
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="fas fa-truck-loading"></i> Controle de Entrada de Materiais</h2>
-        <a href="adicionar.php" class="button add"><i class="fas fa-plus"></i> Registrar Nova Entrada</a>
+        <div class="actions-container">
+            <a href="adicionar.php" class="button add"><i class="fas fa-plus"></i> Registrar Nova Entrada</a>
+            <a href="#" class="button" style="background-color: #3498db;"><i class="fas fa-file-import"></i> Importar por XML</a>
+        </div>
     </div>
 
     <?php if (isset($_SESSION['message'])): ?>
@@ -104,7 +111,7 @@ $entradas = $conn->execute_query($sql_fetch, $params_fetch)->fetch_all(MYSQLI_AS
                         <td><?php echo htmlspecialchars($entrada['fornecedor_nome'] ?? 'N/A'); ?></td>
                         <td>
                             <a href="editar.php?id=<?php echo $entrada['id']; ?>" class="button edit small">Editar</a>
-                            <a href="excluir.php?id=<?php echo $entrada['id']; ?>" class="button delete small" onclick="return confirm('Tem certeza que deseja excluir esta entrada? Esta ação irá reverter o estoque.');">Excluir</a>
+                            <button class="button delete small" onclick="showDeleteModal('entradas_materiais', <?php echo $entrada['id']; ?>)">Excluir</button>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -135,4 +142,5 @@ $entradas = $conn->execute_query($sql_fetch, $params_fetch)->fetch_all(MYSQLI_AS
 
 <?php
 require_once __DIR__ . '/../../includes/footer.php';
+ob_end_flush();
 ?>
